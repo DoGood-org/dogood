@@ -1,0 +1,33 @@
+{
+  "name": "dogood-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for DoGood",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@react-google-maps/api": "^2.20.6",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
+    "framer-motion": "^12.5.0",
+    "leaflet": "^1.9.4",
+    "multer": "^1.4.5-lts.2",
+    "next": "^15.2.2",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-leaflet": "^4.2.1",
+    "react-stripe-checkout": "^2.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.14",
+    "@types/react": "19.0.12",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.0.14",
+    "typescript": "5.8.2"
+  }
+}
