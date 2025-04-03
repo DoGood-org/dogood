@@ -1,17 +1,30 @@
-﻿const express = require('express');
+﻿const express = require("express");
 const router = express.Router();
-const Web3 = require('web3');
+const authMiddleware = require("../middleware/authMiddleware");
+const Web3Import = require("web3");
 
-const web3 = new Web3(new Web3.providers.HttpProvider('https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID'));
+const Web3 = Web3Import.Web3;
 
-// 📌 Проверка транзакции на блокчейне
-router.get('/transaction/:txHash', async (req, res) => {
+// Replace this with your real Infura project ID
+const INFURA_PROJECT_ID = "YOUR_INFURA_PROJECT_ID";
+const web3 = new Web3(`https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`);
+
+// Example route to get ETH balance
+router.get("/balance/:address", authMiddleware, async (req, res) => {
+    const address = req.params.address;
+
+    if (!web3.utils.isAddress(address)) {
+        return res.status(400).json({ msg: "Invalid Ethereum address" });
+    }
+
     try {
-        const { txHash } = req.params;
-        const transaction = await web3.eth.getTransaction(txHash);
-        res.json(transaction);
+        const balanceWei = await web3.eth.getBalance(address);
+        const balanceEth = web3.utils.fromWei(balanceWei, "ether");
+
+        res.json({ address, balance: balanceEth });
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка при проверке транзакции', error: error.message });
+        console.error("Blockchain error:", error.message);
+        res.status(500).json({ msg: "Failed to fetch balance" });
     }
 });
 

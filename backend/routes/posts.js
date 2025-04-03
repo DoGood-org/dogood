@@ -1,39 +1,41 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
-const mongoose = require("mongoose");
+const Post = require("../models/Post");
 
-const PostSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const Post = mongoose.model("Post", PostSchema);
-
-// 📌 Получение всех постов
+// Get all posts
 router.get("/", async (req, res) => {
     try {
-        const posts = await Post.find().populate("user", "name");
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .populate("author", "name");
         res.json(posts);
-    } catch (error) {
-        res.status(500).json({ msg: "Ошибка сервера" });
+    } catch (err) {
+        res.status(500).json({ msg: "Server error" });
     }
 });
 
-// 📌 Создание нового поста (только авторизованные пользователи)
+// Get current user's posts
+router.get("/mine", authMiddleware, async (req, res) => {
+    try {
+        const posts = await Post.find({ author: req.user.id }).sort({ createdAt: -1 });
+        res.json(posts);
+    } catch (err) {
+        res.status(500).json({ msg: "Server error" });
+    }
+});
+
+// Create a new post
 router.post("/", authMiddleware, async (req, res) => {
     try {
-        const { title, content } = req.body;
-        if (!title || !content) return res.status(400).json({ msg: "Заполните все поля" });
-
-        const newPost = new Post({ user: req.user.id, title, content });
+        const newPost = new Post({
+            author: req.user.id,
+            content: req.body.content,
+        });
         await newPost.save();
-
-        res.json(newPost);
-    } catch (error) {
-        res.status(500).json({ msg: "Ошибка сервера" });
+        res.status(201).json(newPost);
+    } catch (err) {
+        res.status(500).json({ msg: "Server error" });
     }
 });
 

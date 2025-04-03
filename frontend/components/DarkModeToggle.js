@@ -12,7 +12,7 @@ export default function DarkModeToggle() {
       onClick={() => setDarkMode(!darkMode)}
       className="bg-gray-800 text-white px-4 py-2 rounded"
     >
-      {darkMode ? "Светлая тема" : "Темная тема"}
+      {darkMode ? "Light Mode" : "Dark Mode"}
     </button>
   );
 }

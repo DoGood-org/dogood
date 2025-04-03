@@ -1,22 +1,16 @@
-import Link from "next/link";
+import { useEffect } from "react";
 
-export default function Home() {
+export default function Page() {
+    useEffect(() => {
+        document.title = "Welcome to DoGood!";
+    }, []);
+
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-r from-blue-200 to-green-200">
-            <h1 className="text-5xl font-bold text-gray-900">Добро пожаловать в DoGood!</h1>
-            <p className="mt-4 text-xl text-gray-700">Помогайте людям, станьте волонтёром или делайте пожертвования.</p>
-            <div className="mt-6 space-x-4">
-                <Link href="/register">
-                    <button className="bg-accent text-white px-6 py-3 rounded-md text-lg shadow-md hover:bg-green-600 transition">
-                        Регистрация
-                    </button>
-                </Link>
-                <Link href="/login">
-                    <button className="bg-primary text-white px-6 py-3 rounded-md text-lg shadow-md hover:bg-blue-600 transition">
-                        Вход
-                    </button>
-                </Link>
-            </div>
+        <div className="p-6 md:p-12 max-w-2xl mx-auto text-center">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4">Welcome to DoGood!</h1>
+            <p className="text-lg md:text-xl text-gray-700">
+                This is the welcome page of DoGood — a platform for real change.
+            </p>
         </div>
     );
 }

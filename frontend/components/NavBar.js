@@ -1,26 +1,81 @@
 import Link from "next/link";
-import DarkModeToggle from "./DarkModeToggle";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 export default function NavBar() {
-    return (
-        <motion.nav
-            className="bg-white dark:bg-gray-900 shadow-md py-4"
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-        >
-            <div className="container mx-auto flex justify-between items-center px-6">
-                <h1 className="text-xl font-bold text-primary dark:text-white">DoGood</h1>
-                <div className="space-x-4">
-                    <Link href="/" className="text-secondary hover:text-primary dark:text-white">Главная</Link>
-                    <Link href="/wallet" className="text-secondary hover:text-primary dark:text-white">Кошелек</Link>
-                    <Link href="/csr" className="text-secondary hover:text-primary dark:text-white">CSR</Link>
-                    <Link href="/goodbot" className="text-secondary hover:text-primary dark:text-white">GoodBot</Link>
-                    <Link href="/map" className="text-secondary hover:text-primary dark:text-white">Карта</Link>
-                    <Link href="/achievements" className="text-secondary hover:text-primary dark:text-white">Достижения</Link>
-                    <DarkModeToggle />
-                </div>
-            </div>
-        </motion.nav>
-    );
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [user, setUser] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error("User fetch error", err);
+      }
+    };
+
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/notifications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        const unread = data.filter((n) => !n.isRead).length;
+        setUnreadCount(unread);
+      } catch (err) {
+        console.error("Notification fetch error", err);
+      }
+    };
+
+    fetchUser();
+    fetchUnread();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  return (
+      <nav className="bg-white shadow p-4 flex justify-between items-center">
+        <Link href="/" className="text-xl font-bold text-indigo-600">
+          DoGood
+        </Link>
+
+        <div className="space-x-4 flex items-center">
+          {user && (
+              <span className="text-gray-700">
+            👤 {user.name}
+          </span>
+          )}
+
+          <button
+              onClick={handleLogout}
+              className="text-gray-700 hover:text-indigo-600"
+          >
+            Logout
+          </button>
+
+          <Link href="/profile#Notifications" className="relative">
+            <span className="text-2xl">🔔</span>
+            {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-600 text-white text-xs rounded-full px-1">
+              {unreadCount}
+            </span>
+            )}
+          </Link>
+        </div>
+      </nav>
+  );
 }

@@ -1,16 +1,15 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const Verification = require('../models/Verification');
 const User = require('../models/User');
 
-// 📌 Запрос на верификацию
 router.post('/request', authMiddleware, async (req, res) => {
     try {
         const { document } = req.body;
         let verification = await Verification.findOne({ user: req.user.id });
 
-        if (verification) return res.status(400).json({ msg: 'Запрос уже отправлен' });
+        if (verification) return res.status(400).json({ msg: 'Request already sent' });
 
         verification = new Verification({
             user: req.user.id,
@@ -18,29 +17,27 @@ router.post('/request', authMiddleware, async (req, res) => {
         });
 
         await verification.save();
-        res.json({ msg: 'Запрос на верификацию отправлен' });
+        res.json({ msg: 'Verification request sent' });
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка сервера', error: error.message });
+        res.status(500).json({ msg: 'Server error', error: error.message });
     }
 });
 
-// 📌 Получение всех запросов (для администраторов)
 router.get('/requests', async (req, res) => {
     try {
         const requests = await Verification.find().populate('user', ['name', 'role']);
         res.json(requests);
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка сервера', error: error.message });
+        res.status(500).json({ msg: 'Server error', error: error.message });
     }
 });
 
-// 📌 Подтверждение/отклонение верификации (только админы)
 router.post('/approve', authMiddleware, async (req, res) => {
     try {
         const { requestId, status, adminComment } = req.body;
         const verification = await Verification.findById(requestId);
 
-        if (!verification) return res.status(404).json({ msg: 'Запрос не найден' });
+        if (!verification) return res.status(404).json({ msg: 'Request not found' });
 
         verification.status = status;
         verification.adminComment = adminComment;
@@ -52,9 +49,9 @@ router.post('/approve', authMiddleware, async (req, res) => {
             await user.save();
         }
 
-        res.json({ msg: 'Статус верификации обновлен', verification });
+        res.json({ msg: 'Verification status updated', verification });
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка сервера', error: error.message });
+        res.status(500).json({ msg: 'Server error', error: error.message });
     }
 });
 

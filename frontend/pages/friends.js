@@ -1,62 +1,37 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-export default function Friends() {
-  const [users, setUsers] = useState([]);
-  const [friends, setFriends] = useState([]);
-  const [token, setToken] = useState('');
+export default function FriendsPage() {
+    const [friends, setFriends] = useState([
+        { id: 1, name: "Alice Johnson", status: "Active" },
+        { id: 2, name: "Bob Smith", status: "Offline" },
+        { id: 3, name: "Carol Lee", status: "Active" },
+    ]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      setToken(storedToken);
-    }
-  }, []);
+    useEffect(() => {
+        document.title = "Friends";
+        // Fetch real friends data here in future
+    }, []);
 
-  useEffect(() => {
-    if (!token) return;
+    return (
+        <div className="p-4 md:p-8 max-w-2xl mx-auto">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">Friends</h1>
 
-    fetch('http://localhost:5000/api/users', {
-      headers: { 'Authorization': token }
-    })
-        .then(res => res.json())
-        .then(setUsers)
-        .catch(console.error);
-
-    fetch('http://localhost:5000/api/friends', {
-      headers: { 'Authorization': token }
-    })
-        .then(res => res.json())
-        .then(setFriends)
-        .catch(console.error);
-  }, [token]);
-
-  const sendRequest = (id) => {
-    fetch('http://localhost:5000/api/friends/request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': token },
-      body: JSON.stringify({ friendId: id })
-    }).then(() => alert('Заявка отправлена'));
-  };
-
-  const acceptRequest = (id) => {
-    fetch('http://localhost:5000/api/friends/accept', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': token },
-      body: JSON.stringify({ friendId: id })
-    }).then(() => alert('Вы теперь друзья'));
-  };
-
-  return (
-      <div>
-        <h1>Друзья</h1>
-        <h2>Все пользователи</h2>
-        {users.map(user => (
-            <div key={user._id}>
-              {user.name} <button onClick={() => sendRequest(user._id)}>Добавить в друзья</button>
+            <div className="space-y-4">
+                {friends.map((friend) => (
+                    <div
+                        key={friend.id}
+                        className="flex items-center justify-between p-4 bg-white rounded shadow-md hover:shadow-lg transition"
+                    >
+                        <div>
+                            <h2 className="text-lg font-semibold">{friend.name}</h2>
+                            <p className="text-sm text-gray-500">Status: {friend.status}</p>
+                        </div>
+                        <span
+                            className={`h-3 w-3 rounded-full ${friend.status === "Active" ? "bg-green-500" : "bg-gray-400"}`}
+                        ></span>
+                    </div>
+                ))}
             </div>
-        ))}
-        <h2>Ваши друзья</h2>
-        {friends.map(friend => <div key={friend._id}>{friend.name}</div>)}
-      </div>
-  );
+        </div>
+    );
 }

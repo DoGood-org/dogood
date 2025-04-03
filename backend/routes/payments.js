@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const paypal = require('paypal-rest-sdk');
@@ -11,16 +11,15 @@ paypal.configure({
     client_secret: process.env.PAYPAL_CLIENT_SECRET
 });
 
-// 📌 Пополнение баланса через Stripe
 router.post('/stripe', authMiddleware, async (req, res) => {
     try {
         const { amount, token } = req.body;
 
         const charge = await stripe.charges.create({
-            amount: amount * 100, // Сумма в центах
+            amount: amount * 100,
             currency: 'usd',
             source: token,
-            description: 'Пополнение DoGood Wallet'
+            description: 'Top-up DoGood Wallet'
         });
 
         let wallet = await Wallet.findOne({ user: req.user.id });
@@ -30,13 +29,12 @@ router.post('/stripe', authMiddleware, async (req, res) => {
         wallet.transactions.push({ type: 'deposit', amount });
 
         await wallet.save();
-        res.json({ msg: 'Пополнение успешно', balance: wallet.balance });
+        res.json({ msg: 'Top-up successful', balance: wallet.balance });
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка платежа через Stripe', error: error.message });
+        res.status(500).json({ msg: 'Stripe payment error', error: error.message });
     }
 });
 
-// 📌 Пополнение баланса через PayPal
 router.post('/paypal', authMiddleware, async (req, res) => {
     try {
         const { amount } = req.body;
@@ -46,7 +44,7 @@ router.post('/paypal', authMiddleware, async (req, res) => {
             payer: { payment_method: 'paypal' },
             transactions: [{
                 amount: { currency: 'USD', total: amount },
-                description: 'Пополнение DoGood Wallet'
+                description: 'Top-up DoGood Wallet'
             }],
             redirect_urls: {
                 return_url: 'http://localhost:5000/api/payments/paypal/success',
@@ -55,22 +53,21 @@ router.post('/paypal', authMiddleware, async (req, res) => {
         };
 
         paypal.payment.create(create_payment_json, (error, payment) => {
-            if (error) return res.status(500).json({ msg: 'Ошибка PayPal', error });
+            if (error) return res.status(500).json({ msg: 'PayPal error', error });
 
             res.json({ approval_url: payment.links.find(link => link.rel === 'approval_url').href });
         });
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка платежа через PayPal', error: error.message });
+        res.status(500).json({ msg: 'PayPal payment error', error: error.message });
     }
 });
 
-// 📌 Подтверждение PayPal-платежа
 router.get('/paypal/success', authMiddleware, async (req, res) => {
     try {
         const { paymentId, PayerID } = req.query;
 
         paypal.payment.execute(paymentId, { payer_id: PayerID }, async (error, payment) => {
-            if (error) return res.status(500).json({ msg: 'Ошибка подтверждения платежа', error });
+            if (error) return res.status(500).json({ msg: 'Payment confirmation error', error });
 
             const amount = parseFloat(payment.transactions[0].amount.total);
 
@@ -84,7 +81,7 @@ router.get('/paypal/success', authMiddleware, async (req, res) => {
             res.redirect('http://localhost:3000/wallet');
         });
     } catch (error) {
-        res.status(500).json({ msg: 'Ошибка при подтверждении PayPal', error: error.message });
+        res.status(500).json({ msg: 'PayPal confirmation error', error: error.message });
     }
 });
 

@@ -1,2 +1,2 @@
-const MyHelpHours = () => <div>Здесь будут отображаться часы помощи пользователя.</div>;
+const MyHelpHours = () => <div>User's help hours will appear here.</div>;
 export default MyHelpHours;

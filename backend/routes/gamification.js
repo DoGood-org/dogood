@@ -1,62 +1,51 @@
-﻿const express = require('express');
+﻿const express = require("express");
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
-const UserStats = require('../models/UserStats');
-const Badge = require('../models/Badges');
+const authMiddleware = require("../middleware/authMiddleware");
+const mongoose = require("mongoose");
+const User = require("../models/User");
 
-// 📌 Обновление статистики пользователя
-router.post('/update', authMiddleware, async (req, res) => {
+const AchievementSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    type: String,
+    date: { type: Date, default: Date.now }
+});
+
+const Achievement = mongoose.models.Achievement || mongoose.model("Achievement", AchievementSchema);
+
+// Leaderboard
+router.get("/leaderboard", async (req, res) => {
     try {
-        const { donations, hours } = req.body;
-        let stats = await UserStats.findOne({ user: req.user.id });
-
-        if (!stats) {
-            stats = new UserStats({ user: req.user.id });
-        }
-
-        if (donations) stats.totalDonations += donations;
-        if (hours) stats.volunteeringHours += hours;
-
-        await stats.save();
-
-        res.json({ msg: 'Статистика обновлена', stats });
-    } catch (error) {
-        res.status(500).json({ msg: 'Ошибка сервера', error: error.message });
+        const topUsers = await User.find().sort({ points: -1 }).limit(10).select("name avatar points");
+        res.json(topUsers);
+    } catch (err) {
+        res.status(500).json({ msg: "Server error" });
     }
 });
 
-// 📌 Получение лидерборда
-router.get('/leaderboard', async (req, res) => {
-    try {
-        const leaderboard = await UserStats.find()
-            .populate('user', ['name', 'avatar'])
-            .sort({ totalDonations: -1, volunteeringHours: -1 })
-            .limit(10);
+// Add achievement
+router.post("/achievement", authMiddleware, async (req, res) => {
+    const { type } = req.body;
+    if (!type) return res.status(400).json({ msg: "Type is required" });
 
-        res.json(leaderboard);
-    } catch (error) {
-        res.status(500).json({ msg: 'Ошибка сервера', error: error.message });
+    try {
+        const achievement = new Achievement({ user: req.user.id, type });
+        await achievement.save();
+        res.status(201).json({ msg: "Achievement recorded" });
+    } catch (err) {
+        res.status(500).json({ msg: "Server error" });
     }
 });
 
-// 📌 Выдача бейджа
-router.post('/award-badge', authMiddleware, async (req, res) => {
+// Add points
+router.post("/points", authMiddleware, async (req, res) => {
+    const { amount } = req.body;
+    if (!amount || isNaN(amount)) return res.status(400).json({ msg: "Invalid amount" });
+
     try {
-        const { badgeId } = req.body;
-        let stats = await UserStats.findOne({ user: req.user.id });
-
-        if (!stats) {
-            stats = new UserStats({ user: req.user.id });
-        }
-
-        if (!stats.badges.includes(badgeId)) {
-            stats.badges.push(badgeId);
-            await stats.save();
-        }
-
-        res.json({ msg: 'Бейдж получен', stats });
-    } catch (error) {
-        res.status(500).json({ msg: 'Ошибка сервера', error: error.message });
+        await User.findByIdAndUpdate(req.user.id, { $inc: { points: amount } });
+        res.json({ msg: "Points updated" });
+    } catch (err) {
+        res.status(500).json({ msg: "Server error" });
     }
 });
 

@@ -2,7 +2,6 @@ const User = require('../models/User');
 const multer = require('multer');
 const path = require('path');
 
-// Multer setup
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     cb(null, 'uploads/avatars/');
@@ -17,7 +16,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Загрузка аватара
 exports.uploadAvatar = [
   upload.single('avatar'),
   async (req, res) => {
@@ -32,7 +30,6 @@ exports.uploadAvatar = [
   },
 ];
 
-// Получение данных пользователя
 exports.getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');

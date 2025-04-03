@@ -18,7 +18,7 @@ router.post('/message', async (req, res) => {
 
         res.json({ message: completion.choices[0].message.content });
     } catch (err) {
-        console.error("Ошибка запроса к OpenAI:", err);
+        console.error("Error while requesting OpenAI:", err);
         res.status(500).json({ error: err.message });
     }
 });
