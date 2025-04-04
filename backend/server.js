@@ -21,11 +21,11 @@ const postsRoutes = require("./routes/posts");
 const userRoutes = require("./routes/user");
 const verificationRoutes = require("./routes/verification");
 const goodDeedsRoutes = require('./routes/goodDeeds');
-
+const deedRoutes = require("./routes/deeds");
 const app = express();
 app.use(express.json());
 app.use(cors());
-
+app.use("/api/deeds", deedRoutes);
 // Routes
 app.use("/api/profile", profileRoutes);
 app.use("/uploads", express.static("uploads"));
