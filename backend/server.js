@@ -45,10 +45,81 @@ app.use("/api/user", userRoutes);
 app.use("/api/verification", verificationRoutes);
 app.use('/api/good-deeds', goodDeedsRoutes);
 app.use("/api/users", publicUserRoutes);
+const path = require("path");
+const passport = require("passport");
+const http = require("http");
+const { Server } = require("socket.io");
+
+require("./services/googleStrategy");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+    },
+});
+
+app.use(cors());
+app.use(express.json());
+app.use(passport.initialize());
+
+// API routes
+app.use("/api/donations", require("./routes/donations"));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/user", require("./routes/user"));
+app.use("/api/posts", require("./routes/posts"));
+app.use("/api/wallet", require("./routes/wallet"));
+app.use("/api/volunteering", require("./routes/volunteering"));
+app.use("/api/verification", require("./routes/verification"));
+app.use("/api/support", require("./routes/support"));
+app.use("/api/gamification", require("./routes/gamification"));
+app.use("/api/upload", require("./routes/upload"));
+app.use("/api/report", require("./routes/report"));
+app.use("/api/grants", require("./routes/grants"));
+app.use("/api/map", require("./routes/map"));
+app.use("/api/chat", require("./routes/chat"));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+module.exports = app;
+
+// WebSocket handling
+io.on("connection", (socket) => {
+    console.log("Socket connected:", socket.id);
+
+    socket.on("joinRoom", (roomId) => {
+        socket.join(roomId);
+    });
+
+    socket.on("sendMessage", ({ roomId, message }) => {
+        io.to(roomId).emit("receiveMessage", message);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Socket disconnected:", socket.id);
+    });
+});
+
+const PORT = process.env.PORT || 5000;
 
 // MongoDB connection
-const PORT = process.env.PORT || 5000;
-mongoose
-    .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`)))
-    .catch((error) => console.error("❌ MongoDB connection error:", error));
+const startServer = async () => {
+    try {
+        const mongoUri = process.env.MONGO_URI || process.env.MONGO_URL;
+        if (!mongoUri) throw new Error("MongoDB connection string is missing.");
+
+        await mongoose.connect(mongoUri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+
+        server.listen(PORT, () => {
+            console.log(`Server running with WebSocket on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("MongoDB connection error:", error);
+    }
+};
+
+startServer();
