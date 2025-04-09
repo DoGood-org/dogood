@@ -1,3 +1,4 @@
+// components/Sidebar.js
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -25,6 +26,7 @@ const Sidebar = () => {
     fetchUser();
   }, []);
 
+  // Navigation links
   const links = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/profile", label: "My Profile" },
@@ -32,7 +34,15 @@ const Sidebar = () => {
     { href: "/my-deeds", label: "My Good Deeds" },
     { href: "/my-hours", label: "My Help Hours" },
     { href: "/wallet", label: "Wallet" },
+    { href: "/badges", label: "Badges" },
+    { href: "/grants", label: "Grants" },
+    { href: "/map", label: "Map" },
+    { href: "/posts", label: "Posts" },
+    { href: "/volunteer", label: "Volunteer" },
+    { href: "/donate", label: "Donate" },
+    { href: "/goodbot", label: "GoodBot" },
     { href: "/verification", label: "Verification" },
+    { href: "/support", label: "Support" },
     { href: "/settings", label: "Settings" },
     { href: "/goodbot", label: "GoodBot 🤖" },
     { href: "/map", label: "GoodMap 🗺️" },
@@ -43,12 +53,20 @@ const Sidebar = () => {
       <div className="mb-8 flex flex-col items-center">
         <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-2xl">
           👤
+      <aside className="w-60 min-h-screen bg-gray-900 text-white hidden md:flex flex-col p-4 border-r border-gray-800">
+        {/* User Avatar + Name */}
+        <div className="mb-8 flex flex-col items-center">
+          <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center text-2xl">
+            👤
+          </div>
+          <div className="mt-2 text-center font-semibold text-sm text-gray-200">
+            {user?.name || "Loading..."}
+          </div>
         </div>
         <div className="mt-2 text-center font-semibold text-gray-700">
           {user ? user.name : "Loading..."}
         </div>
       </div>
-
       <nav className="space-y-2">
         {links.map((link) => (
           <Link key={link.href} href={link.href}>
@@ -65,6 +83,21 @@ const Sidebar = () => {
         ))}
       </nav>
     </aside>
+        {/* Navigation Links */}
+        <nav className="space-y-2">
+          {links.map((link) => (
+              <Link key={link.href} href={link.href}>
+                <div
+                    className={`block px-4 py-2 rounded cursor-pointer hover:bg-teal-700 transition ${
+                        router.pathname === link.href ? "bg-teal-500 text-black font-semibold" : "text-gray-300"
+                    }`}
+                >
+                  {link.label}
+                </div>
+              </Link>
+          ))}
+        </nav>
+      </aside>
   );
 };
 
