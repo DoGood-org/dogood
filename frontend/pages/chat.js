@@ -1,6 +1,7 @@
+// pages/chat.js
 import { useState, useRef, useEffect } from "react";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { motion } from "framer-motion";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import ChatBubble from "@/components/ChatBubble";
 
 const rolePrompts = {
     mentor: "You are a mentor. Respond clearly with examples and advice.",
@@ -40,10 +41,16 @@ export default function ChatPage() {
             });
 
             const data = await res.json();
-            const botMessage = { role: "assistant", content: data.message || "No response received." };
+            const botMessage = {
+                role: "assistant",
+                content: data.message || "No response received."
+            };
             setMessages((prev) => [...prev, botMessage]);
         } catch (err) {
-            setMessages((prev) => [...prev, { role: "assistant", content: "Error: " + err.message }]);
+            setMessages((prev) => [...prev, {
+                role: "assistant",
+                content: "Error: " + err.message
+            }]);
         } finally {
             setLoading(false);
         }
@@ -57,15 +64,15 @@ export default function ChatPage() {
     };
 
     return (
-        <div className="p-4 md:p-6 max-w-3xl mx-auto">
-            <h1 className="text-2xl md:text-3xl font-bold mb-4">💬 Chat with GoodBot</h1>
+        <div className="min-h-screen bg-gray-950 text-white p-6">
+            <h1 className="text-3xl font-bold mb-6 text-center">💬 Chat with GoodBot</h1>
 
-            <div className="mb-4">
+            <div className="mb-4 max-w-xl mx-auto">
                 <label className="font-semibold mr-2">Choose Role:</label>
                 <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="p-2 border rounded w-full md:w-auto"
+                    className="p-2 text-black rounded w-full md:w-auto"
                 >
                     <option value="mentor">👨‍🏫 Mentor</option>
                     <option value="motivator">🧘 Motivator</option>
@@ -74,34 +81,26 @@ export default function ChatPage() {
                 </select>
             </div>
 
-            <div className="bg-white border rounded-lg shadow-md p-3 md:p-4 h-[60vh] overflow-y-auto space-y-3">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 h-[60vh] overflow-y-auto max-w-2xl mx-auto space-y-3">
                 {messages.map((msg, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className={`p-3 rounded-md max-w-[90%] md:max-w-[80%] break-words ${msg.role === "user" ? "bg-blue-100 self-end ml-auto" : "bg-gray-100"}`}
-                    >
-                        {msg.content}
-                    </motion.div>
+                    <ChatBubble key={index} message={msg.content} isUser={msg.role === "user"} />
                 ))}
                 {loading && <LoadingSpinner />}
                 <div ref={chatEndRef}></div>
             </div>
 
-            <div className="mt-4 flex flex-col md:flex-row gap-2">
+            <div className="mt-4 flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
         <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Type your message..."
             rows={2}
-            className="flex-1 p-2 border rounded resize-none"
+            className="flex-1 p-3 text-black rounded resize-none"
         />
                 <button
                     onClick={sendMessage}
-                    className="w-full md:w-auto px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    className="w-full md:w-auto px-6 py-2 bg-teal-500 text-black rounded hover:bg-teal-400 transition"
                     disabled={loading}
                 >
                     Send

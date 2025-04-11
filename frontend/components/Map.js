@@ -1,54 +1,115 @@
-﻿import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-import L from "leaflet";
+// components/Map.js
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useEffect, useState } from 'react';
+import L from 'leaflet';
 
-const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then(mod => mod.Popup), { ssr: false });
+function UserLocation({ setCenter }) {
+  const map = useMap();
 
-const helpIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-});
+  useEffect(() => {
+    if (!navigator.geolocation) return;
 
-const needHelpIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/929/929426.png",
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-});
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const coords = [pos.coords.latitude, pos.coords.longitude];
+      map.setView(coords, 13);
+      setCenter(coords);
+    });
+  }, [map, setCenter]);
 
-export default function Map({ locations = [] }) {
-    const [mounted, setMounted] = useState(false);
+  return null;
+}
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+export default function Map({ filters }) {
+  const [center, setCenter] = useState([51.505, -0.09]);
+  const [pins, setPins] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-    if (!mounted) return <p>Loading map...</p>;
+  useEffect(() => {
+    const fetchPins = async () => {
+      try {
+        let url = "http://localhost:5000/api/map";
+        const params = new URLSearchParams();
 
-    return (
-        <MapContainer center={[48.8566, 2.3522]} zoom={12} style={{ height: "70vh", width: "100%" }} scrollWheelZoom>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        if (filters?.type) params.append("type", filters.type);
+        if (filters?.search) params.append("search", filters.search);
+        if (filters?.lat && filters?.lng && filters?.distance) {
+          params.append("lat", filters.lat);
+          params.append("lng", filters.lng);
+          params.append("distance", filters.distance);
+        }
 
-            {locations.map((loc, idx) => (
-                <Marker
-                    key={idx}
-                    position={[loc.lat, loc.lng]}
-                    icon={loc.type === "help" ? helpIcon : needHelpIcon}
-                >
-                    <Popup>
-                        <strong>{loc.name}</strong>
-                        <br />
-                        Type: {loc.type === "help" ? "Can Help" : "Needs Help"}
-                        <br />
-                        {loc.description && <span>{loc.description}</span>}
-                    </Popup>
-                </Marker>
-            ))}
-        </MapContainer>
-    );
+        if ([...params].length > 0) url += `?${params.toString()}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setPins(data);
+        } else {
+          console.error('API response is not an array:', data);
+          setPins([]);
+        }
+      } catch (err) {
+        console.error("Failed to load map data", err);
+        setPins([]);
+      }
+    };
+
+    const getUserId = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data && data._id) setUserId(data._id);
+      } catch (e) {
+        console.error("Failed to fetch user ID", e);
+      }
+    };
+
+    fetchPins();
+    getUserId();
+  }, [filters]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this point?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/map/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (res.ok) setPins((prev) => prev.filter((p) => p._id !== id));
+    } catch {
+      alert("Failed to delete point");
+    }
+  };
+
+  return (
+      <MapContainer center={center} zoom={13} scrollWheelZoom={true} className="h-[500px] w-full rounded shadow">
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <UserLocation setCenter={setCenter} />
+
+        {pins.length > 0 && pins.map((pin) => (
+            <Marker key={pin._id} position={[pin.lat, pin.lng]}>
+              <Popup>
+                <strong>{pin.name}</strong>
+                <br />
+                {pin.description}
+                {userId === pin.user && (
+                    <button
+                        onClick={() => handleDelete(pin._id)}
+                        className="block mt-2 px-2 py-1 bg-red-500 text-white rounded"
+                    >
+                      Delete
+                    </button>
+                )}
+              </Popup>
+            </Marker>
+        ))}
+      </MapContainer>
+  );
 }

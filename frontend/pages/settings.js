@@ -1,64 +1,84 @@
+// pages/settings.js
 import { useEffect, useState } from "react";
+import Toast from "@/components/Toast";
 
-export default function Settings() {
-  const [theme, setTheme] = useState("light");
+export default function SettingsPage() {
   const [name, setName] = useState("");
-  const [savedName, setSavedName] = useState("");
+  const [theme, setTheme] = useState("dark");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem("theme") || "light";
-    const storedName = localStorage.getItem("name") || "";
-    setTheme(storedTheme);
-    setName(storedName);
-    setSavedName(storedName);
-    document.documentElement.className = storedTheme;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("/api/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+        .then((res) => res.json())
+        .then((data) => {
+          setName(data.name || "");
+          setTheme(data.theme || "dark");
+        });
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.className = newTheme;
-  };
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  const saveName = () => {
-    localStorage.setItem("name", name);
-    setSavedName(name);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, theme }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save settings");
+
+      localStorage.setItem("theme", theme);
+      setToast({ message: "Settings saved successfully", type: "success" });
+    } catch (err) {
+      setToast({ message: err.message, type: "error" });
+    }
   };
 
   return (
-      <div className="p-4 md:p-8 max-w-lg mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-center">Settings</h1>
+      <div className="min-h-screen bg-gray-950 text-white p-6">
+        <h1 className="text-3xl font-bold mb-6">Settings</h1>
 
-        <div className="bg-white rounded shadow-md p-6 space-y-6">
+        <div className="max-w-xl space-y-4">
           <div>
-            <label className="block mb-2 font-medium">Display Name</label>
+            <label className="block mb-1">Name</label>
             <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 border rounded"
+                className="w-full p-3 text-black rounded"
             />
-            <button
-                onClick={saveName}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              Save Name
-            </button>
-            {savedName && (
-                <p className="text-sm text-gray-600 mt-1">Saved as: {savedName}</p>
-            )}
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">Theme</label>
-            <button
-                onClick={toggleTheme}
-                className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition"
+            <label className="block mb-1">Theme</label>
+            <select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+                className="w-full p-3 text-black rounded"
             >
-              Toggle to {theme === "light" ? "Dark" : "Light"}
-            </button>
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
           </div>
+
+          <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-teal-400 text-black rounded hover:bg-teal-300"
+          >
+            Save Settings
+          </button>
+
+          {toast && <Toast message={toast.message} type={toast.type} />}
         </div>
       </div>
   );

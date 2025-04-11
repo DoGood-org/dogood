@@ -1,6 +1,8 @@
+// pages/goodbot.js
 import { useState } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 export default function GoodBotPage() {
     const [prompt, setPrompt] = useState("");
@@ -29,45 +31,51 @@ export default function GoodBotPage() {
     };
 
     return (
-        <div className="p-8 font-sans">
-            <h1 className="text-3xl font-bold mb-6">🤖 GoodBot Assistant</h1>
+        <div className="min-h-screen bg-gray-950 text-white p-6">
+            <div className="max-w-3xl mx-auto">
+                <div className="flex items-center gap-4 mb-6">
+                    <Image src="/goodbot.png" alt="GoodBot" width={64} height={64} className="rounded-full" />
+                    <h1 className="text-3xl font-bold">GoodBot Assistant</h1>
+                </div>
 
-            <textarea
-                rows={4}
-                cols={60}
-                placeholder="Ask GoodBot anything..."
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="w-full p-4 mb-4 text-lg border rounded shadow-sm"
-            />
+                {/* User Input */}
+                <textarea
+                    rows={4}
+                    placeholder="Ask GoodBot anything..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="w-full p-4 mb-4 text-lg text-black rounded"
+                />
 
-            <button
-                onClick={sendMessage}
-                disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-                {loading ? "Thinking..." : "Send"}
-            </button>
+                <button
+                    onClick={sendMessage}
+                    disabled={loading}
+                    className="px-6 py-2 bg-teal-400 text-black rounded hover:bg-teal-300 transition"
+                >
+                    {loading ? "Thinking..." : "Send"}
+                </button>
 
-            <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-2">💬 Response:</h3>
+                {/* Bot Response */}
+                <div className="mt-8">
+                    <h3 className="text-xl font-semibold mb-2">Response:</h3>
 
-                <div className="min-h-[100px] bg-gray-100 p-4 rounded shadow-sm">
-                    {loading && <LoadingSpinner />}
+                    <div className="min-h-[100px] bg-gray-800 p-4 rounded-xl shadow-md">
+                        {loading && <LoadingSpinner />}
 
-                    <AnimatePresence>
-                        {!loading && response && (
-                            <motion.div
-                                key="response"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                {response}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                        <AnimatePresence>
+                            {!loading && response && (
+                                <motion.div
+                                    key="response"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    {response}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
         </div>

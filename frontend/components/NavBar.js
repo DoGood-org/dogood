@@ -1,80 +1,69 @@
-import Link from "next/link";
+// components/NavBar.js
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 
 export default function NavBar() {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState(null);
   const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (token) {
+      fetch("http://localhost:5000/api/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+          .then((res) => res.json())
+          .then((data) => setUser(data.user));
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.error("User fetch error", err);
-      }
-    };
-
-    const fetchUnread = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/notifications", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        const unread = data.filter((n) => !n.isRead).length;
-        setUnreadCount(unread);
-      } catch (err) {
-        console.error("Notification fetch error", err);
-      }
-    };
-
-    fetchUser();
-    fetchUnread();
+      fetch("http://localhost:5000/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+          .then((res) => res.json())
+          .then((data) => setNotifications(data.filter(n => !n.read).length));
+    }
   }, []);
 
-  const handleLogout = () => {
+  const logout = () => {
     localStorage.removeItem("token");
+    setUser(null);
     router.push("/login");
   };
 
   return (
-      <nav className="bg-white shadow p-4 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-indigo-600">
-          DoGood
-        </Link>
+      <nav className="w-full bg-gray-900 text-white shadow-md px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center space-x-4">
+          <Link href="/" className="text-xl font-bold text-teal-400">DoGood</Link>
+          <Link href="/map" className="hover:text-teal-300">Map</Link>
+          <Link href="/posts" className="hover:text-teal-300">Posts</Link>
+          <Link href="/donate" className="hover:text-teal-300">Donate</Link>
+          <Link href="/goodbot" className="hover:text-teal-300">GoodBot</Link>
+          <Link href="/learn" className="hover:text-teal-300">Learn</Link>
+        </div>
 
-        <div className="space-x-4 flex items-center">
-          {user && (
-              <span className="text-gray-700">
-            👤 {user.name}
-          </span>
+        <div className="flex items-center space-x-4">
+          {user ? (
+              <>
+                <Link href="/notifications" className="relative hover:text-teal-300">
+                  🔔
+                  {notifications > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-xs rounded-full px-1">
+                  {notifications}
+                </span>
+                  )}
+                </Link>
+                <Link href="/profile" className="hover:text-teal-300">{user.name || "Profile"}</Link>
+                <button onClick={logout} className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400">
+                  Logout
+                </button>
+              </>
+          ) : (
+              <>
+                <Link href="/login" className="hover:text-teal-300">Login</Link>
+                <Link href="/register" className="hover:text-teal-300">Register</Link>
+              </>
           )}
-
-          <button
-              onClick={handleLogout}
-              className="text-gray-700 hover:text-indigo-600"
-          >
-            Logout
-          </button>
-
-          <Link href="/profile#Notifications" className="relative">
-            <span className="text-2xl">🔔</span>
-            {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-600 text-white text-xs rounded-full px-1">
-              {unreadCount}
-            </span>
-            )}
-          </Link>
         </div>
       </nav>
   );
