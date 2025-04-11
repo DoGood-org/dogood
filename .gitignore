@@ -1,17 +1,11 @@
-# Node
 node_modules/
 .env
-
-# Logs
-logs
-*.log
-
-# Build
-dist/
 .next/
-out/
+dist/
 build/
-
-# OS
+logs/
+*.log
+*.env.*
+coverage/
+.idea/
 .DS_Store
-Thumbs.db
