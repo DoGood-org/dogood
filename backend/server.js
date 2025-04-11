@@ -52,7 +52,6 @@ const { Server } = require("socket.io");
 
 require("./services/googleStrategy");
 
-const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
