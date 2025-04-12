@@ -1,4 +1,3 @@
-// pages/_app.js
 import Layout from "@/components/Layout";
 import "@/styles/globals.css";
 import Script from "next/script";
@@ -8,7 +7,6 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 function MyApp({ Component, pageProps }) {
   return (
     <>
-      {/* Google Analytics */}
       {GA_ID && (
         <>
           <Script
@@ -32,7 +30,6 @@ function MyApp({ Component, pageProps }) {
         </>
       )}
 
-      {/* Wrapper layout */}
       <Layout>
         <Component {...pageProps} />
       </Layout>
