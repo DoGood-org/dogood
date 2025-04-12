@@ -1,16 +1,34 @@
-﻿@tailwind base;
+/* styles/globals.css */
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*Styles*/
+html,
 body {
-  @apply bg-gray-100 text-gray-900;
+  padding: 0;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #ffffff;
+  color: #1D2B3A;
+  scroll-behavior: smooth;
 }
 
-h1 {
-  @apply text-3xl font-bold text-primary;
+button, a {
+  transition: all 0.2s ease-in-out;
 }
 
-button {
-  @apply bg-primary text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600 transition;
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: #1D2B3A;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Optional custom utility classes */
+.section-title {
+  @apply text-3xl font-bold mb-6 text-center;
 }
