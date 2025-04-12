@@ -34,22 +34,40 @@ export default function NavBar() {
   return (
     <nav className="w-full bg-gray-900 text-white shadow-md px-6 py-3 flex flex-wrap items-center justify-between sticky top-0 z-50">
       <div className="flex items-center flex-wrap gap-2 md:gap-4">
-        <Link href="/" className="text-xl font-bold text-teal-400">
+        <Link
+          href="/"
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded shadow"
+        >
           DoGood
         </Link>
-        <Link href="/dashboard" className="hover:text-teal-300">
+        <Link
+          href="/dashboard"
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded shadow"
+        >
           Dashboard
         </Link>
-        <Link href="/map" className="hover:text-teal-300">
+        <Link
+          href="/map"
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded shadow"
+        >
           Map
         </Link>
-        <Link href="/donate" className="hover:text-teal-300">
+        <Link
+          href="/donate"
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded shadow"
+        >
           Donate
         </Link>
-        <Link href="/goodbot" className="hover:text-teal-300">
+        <Link
+          href="/goodbot"
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded shadow"
+        >
           GoodBot
         </Link>
-        <Link href="/settings" className="hover:text-teal-300">
+        <Link
+          href="/settings"
+          className="bg-teal-500 hover:bg-teal-600 text-white font-semibold px-4 py-2 rounded shadow"
+        >
           Settings
         </Link>
       </div>
@@ -77,10 +95,16 @@ export default function NavBar() {
           </>
         ) : (
           <>
-            <Link href="/login" className="hover:text-teal-300">
+            <Link
+              href="/login"
+              className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded"
+            >
               Login
             </Link>
-            <Link href="/register" className="hover:text-teal-300">
+            <Link
+              href="/register"
+              className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded"
+            >
               Register
             </Link>
           </>
