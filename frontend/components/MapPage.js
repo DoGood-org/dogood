@@ -33,7 +33,7 @@ export default function MapPageContent() {
 
     const fetchDeeds = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API}/deeds`);
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API}/api/deeds`);
         setDeeds(res.data);
       } catch (err) {
         console.error("Failed to load deeds:", err);
