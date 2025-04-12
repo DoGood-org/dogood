@@ -28,7 +28,7 @@ export default function MapPage() {
   useEffect(() => {
     document.title = "DoGood Map";
 
-    if (navigator.geolocation) {
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => console.warn("Geolocation failed")
@@ -125,7 +125,7 @@ export default function MapPage() {
         </MapContainer>
       </div>
 
-      {/* Optionally include dynamic map if needed */}
+      {/* Optional: dynamic map overlay */}
       {/* <DynamicMap filters={filters} key={reload} /> */}
     </div>
   );
