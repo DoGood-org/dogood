@@ -2,11 +2,11 @@
   "name": "dogood-frontend",
   "version": "1.0.0",
   "description": "Frontend for DoGood",
-  "main": "index.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "next lint",
     "cypress:open": "cypress open"
   },
   "dependencies": {
