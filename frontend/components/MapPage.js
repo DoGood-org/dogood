@@ -5,7 +5,6 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
-// Fix Leaflet icon bug for SSR with Webpack
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -96,7 +95,7 @@ export default function MapPageContent() {
         />
       </div>
 
-      <div className="h-[600px] w-full rounded overflow-hidden shadow">
+      <div style={{ height: "600px", width: "100%" }} className="rounded overflow-hidden shadow">
         <MapContainer
           center={coords || [48.8566, 2.3522]}
           zoom={4}
