@@ -72,7 +72,7 @@ export default function Home() {
 
       <canvas id="dots-canvas" className="absolute top-0 left-0 w-full h-full z-0" />
 
-      <header className="relative z-10 flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4">
+      <header className="relative z-10 flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2 text-2xl font-bold">
           <Image src="/logo.png" alt="DoGood Logo" width={40} height={40} />
           DoGood
@@ -85,14 +85,14 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="relative z-10 flex flex-col lg:flex-row items-center justify-between px-6 pt-10 pb-16 gap-12 max-w-7xl mx-auto">
+      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center justify-between px-6 pt-10 pb-16 gap-8 max-w-7xl mx-auto">
         <div className="flex flex-col items-start text-left max-w-xl">
           <Image src="/goodbot.png" alt="GoodBot" width={100} height={100} className="mb-4" />
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4">Welcome to DoGood</h1>
-          <p className="text-lg text-gray-300 mb-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">Welcome to DoGood</h1>
+          <p className="text-lg text-gray-300 mb-6 leading-relaxed">
             A platform where kindness connects the world. Volunteer, donate, support.
           </p>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             <Link
               href="/map"
               className="px-6 py-3 bg-teal-400 rounded-xl text-black font-semibold hover:bg-teal-300 transition"
@@ -108,7 +108,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative flex justify-center items-center w-full lg:w-1/2">
+        <div className="flex justify-center items-center w-full">
           <Image
             src="/planet.png"
             alt="Planet"
