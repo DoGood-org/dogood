@@ -1,33 +1,45 @@
-// components/MyHelpHours.js
+
 import { useEffect, useState } from 'react';
 
 export default function MyHelpHours() {
   const [hours, setHours] = useState(0);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      setError("Authentication token not found.");
+      setLoading(false);
+      return;
+    }
 
-    fetch('/api/my-hours', {
+    fetch(`${API_BASE_URL}/api/my-hours`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to fetch help hours");
         setHours(data.total || 0);
         setRecords(data.records || []);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        setError(err.message || "Something went wrong");
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
     <div className="bg-gray-800 p-6 rounded-xl">
-      <h2 className="text-xl font-semibold mb-4">My Help Hours</h2>
+      <h2 className="text-xl font-semibold mb-4 text-white">My Help Hours</h2>
 
       {loading ? (
         <p className="text-gray-400">Loading help hours...</p>
+      ) : error ? (
+        <p className="text-red-400">{error}</p>
       ) : (
         <>
           <p className="text-4xl font-bold text-teal-400 mb-6">{hours} hours</p>
@@ -42,7 +54,7 @@ export default function MyHelpHours() {
                   className="bg-gray-700 p-4 rounded flex justify-between items-center"
                 >
                   <div>
-                    <p className="font-medium">{item.title}</p>
+                    <p className="font-medium text-white">{item.title}</p>
                     <p className="text-sm text-gray-400">{item.date}</p>
                   </div>
                   <div className="text-teal-300 font-bold">+{item.hours}h</div>
