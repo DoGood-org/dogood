@@ -72,12 +72,12 @@ export default function Home() {
 
       <canvas id="dots-canvas" className="absolute top-0 left-0 w-full h-full z-0" />
 
-      <header className="relative z-10 flex flex-col md:flex-row items-center justify-between px-6 py-4 gap-4 max-w-7xl mx-auto">
+      <header className="relative z-10 flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-2 max-w-5xl mx-auto">
         <div className="flex items-center gap-2 text-2xl font-bold">
           <Image src="/logo.png" alt="DoGood Logo" width={40} height={40} />
           DoGood
         </div>
-        <nav className="flex flex-wrap gap-4 text-sm">
+        <nav className="flex flex-wrap gap-3 text-sm">
           <Link href="#about" className="hover:text-teal-300">About</Link>
           <Link href="#how" className="hover:text-teal-300">How it works</Link>
           <Link href="/login" className="hover:text-teal-300">Login</Link>
@@ -85,23 +85,23 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center justify-between px-6 pt-10 pb-16 gap-8 max-w-7xl mx-auto">
+      <main className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center justify-between px-4 pt-4 pb-8 gap-4 max-w-5xl mx-auto">
         <div className="flex flex-col items-start text-left max-w-xl">
-          <Image src="/goodbot.png" alt="GoodBot" width={100} height={100} className="mb-4" />
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">Welcome to DoGood</h1>
-          <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+          <Image src="/goodbot.png" alt="GoodBot" width={100} height={100} className="mb-3" />
+          <h1 className="text-3xl md:text-4xl font-extrabold mb-3 leading-tight">Welcome to DoGood</h1>
+          <p className="text-base text-gray-300 mb-4 leading-relaxed">
             A platform where kindness connects the world. Volunteer, donate, support.
           </p>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             <Link
               href="/map"
-              className="px-6 py-3 bg-teal-400 rounded-xl text-black font-semibold hover:bg-teal-300 transition"
+              className="px-5 py-2.5 bg-teal-400 rounded-lg text-black font-semibold hover:bg-teal-300 transition"
             >
               Start
             </Link>
             <Link
               href="#about"
-              className="px-6 py-3 border border-teal-300 rounded-xl hover:bg-teal-300 hover:text-black transition"
+              className="px-5 py-2.5 border border-teal-300 rounded-lg hover:bg-teal-300 hover:text-black transition"
             >
               Learn More
             </Link>
@@ -112,20 +112,20 @@ export default function Home() {
           <Image
             src="/planet.png"
             alt="Planet"
-            width={300}
-            height={300}
+            width={250}
+            height={250}
             className="animate-pulse"
           />
         </div>
       </main>
 
-      <section id="features" className="relative z-10 bg-white text-black px-6 py-12">
-        <h2 className="text-3xl font-bold text-center mb-10">What You Can Do</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <section id="features" className="relative z-10 bg-white text-black px-4 py-6">
+        <h2 className="text-2xl font-bold text-center mb-6">What You Can Do</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
           {features.map(({ title, description, href }) => (
             <Link key={title} href={href}>
-              <div className="bg-gray-100 p-6 rounded-xl shadow hover:shadow-xl hover:bg-gray-200 transition h-full cursor-pointer">
-                <h3 className="text-xl font-semibold text-indigo-800 mb-2">{title}</h3>
+              <div className="bg-gray-100 p-4 rounded-lg shadow hover:shadow-lg hover:bg-gray-200 transition h-full cursor-pointer">
+                <h3 className="text-lg font-semibold text-indigo-800 mb-1">{title}</h3>
                 <p className="text-gray-700 text-sm">{description}</p>
               </div>
             </Link>
