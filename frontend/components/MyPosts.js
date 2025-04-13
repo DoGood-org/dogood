@@ -9,10 +9,12 @@ export default function MyPosts() {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 5;
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/posts/mine", {
+        const res = await fetch(`${API_BASE_URL}/api/posts/mine`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
