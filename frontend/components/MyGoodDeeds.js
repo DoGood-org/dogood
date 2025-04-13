@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -6,10 +7,16 @@ const MyGoodDeeds = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
     useEffect(() => {
         const fetchDeeds = async () => {
             try {
-                const response = await axios.get('/api/good-deeds');
+                const response = await axios.get(`${API_BASE_URL}/api/good-deeds`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
                 setDeeds(response.data);
             } catch (err) {
                 setError('Failed to load your good deeds.');
