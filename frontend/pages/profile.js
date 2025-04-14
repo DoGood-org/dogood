@@ -56,7 +56,7 @@ export default function ProfilePage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={\`pb-2 \${activeTab === tab.id ? 'border-b-2 border-teal-400 font-semibold' : 'text-gray-400 hover:text-white'}\`}
+            className={`pb-2 ${activeTab === tab.id ? 'border-b-2 border-teal-400 font-semibold' : 'text-gray-400 hover:text-white'}`}
           >
             {tab.label}
           </button>
