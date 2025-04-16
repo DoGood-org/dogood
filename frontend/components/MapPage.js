@@ -1,125 +1,134 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import MapForm from "./MapForm";
+// Enhanced version of MapPage.js with GoodBot and radial filters
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
-delete L.Icon.Default.prototype._getIconUrl;
+import GoodBotChatModal from "../components/GoodBotChatModal";
+import MapForm from "./MapForm";
+import CategoryIcon from "../components/CategoryIcon";
+import BottomFilterBar from "../components/BottomFilterBar";
+import TopTabs from "../components/TopTabs";
+
+const categories = [
+  { key: "volunteer", label: "Volunteers" },
+  { key: "animals", label: "Animals" },
+  { key: "nature", label: "Nature" },
+  { key: "education", label: "Education" },
+  { key: "medical", label: "Medical" },
+  { key: "community", label: "Community" },
+];
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-export default function MapPageContent() {
+export default function MapPageEnhanced() {
   const [deeds, setDeeds] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState(null);
-  const [reload, setReload] = useState(0);
-  const [search, setSearch] = useState("");
-  const [distance, setDistance] = useState(0);
   const [coords, setCoords] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [botOpen, setBotOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("Tasks");
 
   useEffect(() => {
-    document.title = "DoGood Map";
-
-    if (typeof window !== "undefined" && "geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
+    navigator.geolocation.getCurrentPosition(
         (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => console.warn("Geolocation failed")
-      );
-    }
-
-    const fetchDeeds = async () => {
-      try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API}/api/deeds`);
-        setDeeds(res.data);
-      } catch (err) {
-        console.error("Failed to load deeds:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    );
 
     fetchDeeds();
-  }, []);
+  }, [activeCategory]);
 
-  const handleAdded = () => {
-    setReload((prev) => prev + 1);
-  };
+  const fetchDeeds = async () => {
+    let url = `${process.env.NEXT_PUBLIC_API}/api/deeds`;
+    if (activeCategory) url += `?category=${activeCategory}`;
 
-  const filters = {
-    ...filter,
-    search,
-    ...(distance > 0 && coords ? { distance, lat: coords.lat, lng: coords.lng } : {}),
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      setDeeds(data);
+    } catch (err) {
+      console.error("Failed to load deeds:", err);
+    }
   };
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-6">GoodMap</h1>
+      <div className="relative w-full min-h-screen bg-gradient-to-br from-[#0e1f1f] to-[#1e3a3a] text-white pb-28">
+        <TopTabs active={activeTab} setActive={setActiveTab} />
 
-      <MapForm onAdded={handleAdded} />
+        <div className="text-center py-4 text-3xl font-bold">GoodMap</div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setFilter(null)} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">
-            All
-          </button>
-          <button onClick={() => setFilter({ type: "help" })} className="px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600">
-            Helpers
-          </button>
-          <button onClick={() => setFilter({ type: "need" })} className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600">
-            Need Help
-          </button>
+        {/* GoodBot animated */}
+        <motion.div
+            className="absolute z-[1000] left-1/2 top-[calc(50%-40px)] -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+            onClick={() => setBotOpen(true)}
+            animate={{ scale: [1, 1.1, 1], boxShadow: ["0 0 0px teal", "0 0 20px cyan", "0 0 0px teal"] }}
+            transition={{ duration: 2, repeat: Infinity }}
+        >
+          <img src="/goodbot.png" alt="GoodBot" className="w-20 h-20 rounded-full" />
+        </motion.div>
 
-          <select
-            value={distance}
-            onChange={(e) => setDistance(Number(e.target.value))}
-            className="px-3 py-2 rounded border"
-          >
-            <option value={0}>All distances</option>
-            <option value={5}>5 km</option>
-            <option value={10}>10 km</option>
-            <option value={25}>25 km</option>
-            <option value={50}>50 km</option>
-          </select>
+        {/* Category icons radial */}
+        <div className="absolute inset-0 pointer-events-none">
+          {categories.map((cat, i) => {
+            const angle = (360 / categories.length) * i;
+            const rad = (angle * Math.PI) / 180;
+            const r = 120; // radius from center
+            const x = r * Math.cos(rad);
+            const y = r * Math.sin(rad);
+            return (
+                <div
+                    key={cat.key}
+                    onClick={() => setActiveCategory(cat.key)}
+                    className="absolute pointer-events-auto transform hover:scale-110 transition"
+                    style={{
+                      left: `calc(50% + ${x}px)`,
+                      top: `calc(50% + ${y}px)`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                >
+                  <CategoryIcon active={activeCategory === cat.key} label={cat.label} />
+                </div>
+            );
+          })}
         </div>
 
-        <input
-          type="text"
-          placeholder="Search by keyword..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full sm:w-64 p-2 border rounded"
-        />
-      </div>
+        {/* Map */}
+        <div className="w-full h-[600px] z-10 relative">
+          <MapContainer center={coords || [48.85, 2.35]} zoom={5} className="h-full w-full">
+            <TileLayer
+                attribution='&copy; OpenStreetMap'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
 
-      <div style={{ height: "600px", width: "100%" }} className="rounded overflow-hidden shadow">
-        <MapContainer
-          center={coords || [48.8566, 2.3522]}
-          zoom={4}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            attribution='&copy; OpenStreetMap'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {!loading &&
-            deeds.map((deed) => (
-              <Marker key={deed._id} position={[deed.location.lat, deed.location.lng]}>
-                <Popup>
-                  <strong>{deed.title}</strong>
-                  <br />
-                  {deed.description}
-                  <br />
-                  <em>{new Date(deed.date).toLocaleDateString()}</em>
-                </Popup>
-              </Marker>
+            {deeds.map((deed) => (
+                <Marker key={deed._id} position={[deed.location.lat, deed.location.lng]}>
+                  <Popup>
+                    <strong>{deed.title}</strong>
+                    <br />
+                    {deed.description}
+                  </Popup>
+                </Marker>
             ))}
-        </MapContainer>
+          </MapContainer>
+        </div>
+
+        {/* Tab Content */}
+        <div className="mt-6 max-w-5xl mx-auto px-4">
+          {activeTab === "Tasks" && <p>🔧 Tasks content coming soon...</p>}
+          {activeTab === "Requests" && <p>📥 Active help requests will be shown here.</p>}
+          {activeTab === "Profile" && <p>👤 User profile with stats and achievements.</p>}
+        </div>
+
+        {/* GoodBot Chat Modal */}
+        {botOpen && <GoodBotChatModal onClose={() => setBotOpen(false)} />}
+
+        {/* Bottom Filter Bar */}
+        <BottomFilterBar active={activeCategory} setActive={setActiveCategory} />
       </div>
-    </div>
   );
 }
