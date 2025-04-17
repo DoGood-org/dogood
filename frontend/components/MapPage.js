@@ -34,18 +34,6 @@ const mockBadges = [
     { emoji: "💡", name: "Idea Giver", description: "Suggested improvements via feedback" },
 ];
 
-const mockActivity = [
-    { icon: "✅", label: "Helped clean park", date: "Apr 14, 2025", category: "Nature" },
-    { icon: "🙌", label: "Joined donation drive", date: "Apr 12, 2025", category: "Community" },
-    { icon: "🐶", label: "Cared for animals", date: "Apr 10, 2025", category: "Animals" },
-];
-
-const mockBadges = [
-    { emoji: "🎖️", name: "Kind Helper", description: "Completed 5 good deeds" },
-    { emoji: "🔥", name: "Active Week", description: "Participated every day this week" },
-    { emoji: "💡", name: "Idea Giver", description: "Suggested improvements via feedback" },
-];
-
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
