@@ -13,7 +13,7 @@ export default function Verification() {
     }
 
     try {
-      const res = await fetch("API_URL/api/verification/request", {
+      const res = await fetch(`${API_URL}/api/verification/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

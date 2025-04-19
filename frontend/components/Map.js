@@ -28,7 +28,7 @@ export default function Map({ filters }) {
   useEffect(() => {
     const fetchPins = async () => {
       try {
-        let url = "API_URL/api/map";
+        let url = `${API_URL}/api/map`;
         const params = new URLSearchParams();
 
         if (filters?.type) params.append("type", filters.type);
@@ -77,7 +77,7 @@ export default function Map({ filters }) {
   const handleDelete = async (id) => {
     if (!window.confirm("🗑️ Are you sure you want to delete this location? This action cannot be undone.")) return;
     try {
-      const res = await fetch(`API_URL/api/map/${id}`, {
+      const res = await fetch(`${API_URL}/api/map/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -10,7 +10,7 @@ export default function FriendButton({ targetUserId }) {
   useEffect(() => {
     const checkFriendship = async () => {
       try {
-        const res = await fetch("API_URL/api/friends/list", {
+        const res = await fetch(`${API_URL}/api/friends/list`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

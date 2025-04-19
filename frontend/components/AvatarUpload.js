@@ -29,7 +29,7 @@ const AvatarUpload = () => {
       const formData = new FormData();
       formData.append("avatar", file);
 
-      const res = await axios.post("API_URL/api/upload/avatar", formData, {
+      const res = await axios.post(`${API_URL}/api/upload/avatar`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem("token")}`,

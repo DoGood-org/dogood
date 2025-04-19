@@ -8,7 +8,7 @@ export default function FriendsList() {
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const res = await fetch("API_URL/api/friends/list", {
+        const res = await fetch(`${API_URL}/api/friends/list`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

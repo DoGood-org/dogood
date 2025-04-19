@@ -27,7 +27,7 @@ export default function MapForm() {
     }
 
     try {
-      const res = await fetch("API_URL/api/map/add", {
+      const res = await fetch(API_URL/api/map/add, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

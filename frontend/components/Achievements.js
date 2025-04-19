@@ -8,7 +8,7 @@ export default function Achievements() {
 
   useEffect(() => {
     // Fetch points
-    fetch("API_URL/api/user/points", {
+    fetch(`${API_URL}/api/user/points`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
         .then((res) => res.json())
@@ -16,7 +16,7 @@ export default function Achievements() {
         .catch(() => setPoints(0));
 
     // Fetch posts
-    fetch("API_URL/api/posts/mine", {
+    fetch(`${API_URL}/api/posts/mine`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
         .then((res) => res.json())

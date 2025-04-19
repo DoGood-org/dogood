@@ -13,7 +13,7 @@ export default function PublicProfile() {
 
     const fetchUser = async () => {
       try {
-        const res = await fetch(`API_URL/api/users/${id}`);
+        const res = await fetch(`${API_URL}/api/users/${id}`);
         if (!res.ok) throw new Error("User not found");
 
         const data = await res.json();

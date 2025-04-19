@@ -7,7 +7,7 @@ export default function KarmaPoints() {
   useEffect(() => {
     const fetchPoints = async () => {
       try {
-        const res = await fetch("API_URL/api/user/points", {
+        const res = await fetch(`${API_URL}/api/user/points`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

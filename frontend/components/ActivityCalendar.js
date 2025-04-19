@@ -21,7 +21,7 @@ export default function ActivityCalendar() {
 
       try {
         if (showPosts) {
-          const postRes = await fetch("API_URL/api/posts/mine", {
+          const postRes = await fetch(`${API_URL}/api/posts/mine`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const posts = await postRes.json();
@@ -29,7 +29,7 @@ export default function ActivityCalendar() {
         }
 
         if (showVolunteering) {
-          const volRes = await fetch("API_URL/api/volunteering", {
+          const volRes = await fetch(`${API_URL}/api/volunteering`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const vols = await volRes.json();

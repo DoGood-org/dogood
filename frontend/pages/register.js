@@ -21,7 +21,7 @@ export default function Register() {
     }
 
     try {
-      const res = await fetch("API_URL/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name }),
@@ -40,7 +40,7 @@ export default function Register() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post("API_URL/api/auth/oauth", {
+      const res = await axios.post(`${API_URL}/api/auth/oauth`, {
         provider: "google",
         token: credentialResponse.credential,
       });

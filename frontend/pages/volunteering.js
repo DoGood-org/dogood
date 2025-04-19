@@ -15,7 +15,7 @@ export default function Volunteering() {
     }
 
     try {
-      const res = await fetch("API_URL/api/volunteering", {
+      const res = await fetch(`${API_URL}/api/volunteering`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
