@@ -25,6 +25,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({
     origin: "http://localhost:3000",
+    "https://dogood-pink.vercel.app"
     credentials: true
 }));
 app.use("/api/deeds", deedRoutes);
