@@ -1,24 +1,20 @@
 {
   "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
-    "id": 57,
+    "id": "node_modules\\next\\dist\\client\\index.js -> ../pages/_app",
     "files": [
-      "static/chunks/57.268c8c590d7f2802.js"
+      "static/chunks/_pages-dir-browser_node_modules_next_dist_pages__app_js.js"
     ]
   },
   "node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
-    "id": 4100,
+    "id": "node_modules\\next\\dist\\client\\index.js -> ../pages/_error",
     "files": [
-      "static/chunks/100.084daefc5a29e8ba.js"
+      "static/chunks/_pages-dir-browser_node_modules_next_dist_pages__error_js.js"
     ]
   },
   "pages\\map.js -> ../components/MapPage": {
-    "id": 5666,
+    "id": "pages\\map.js -> ../components/MapPage",
     "files": [
-      "static/css/55693049b062c6a3.css",
-      "static/chunks/25f4ac2a.7608bce3d322155a.js",
-      "static/chunks/14-08d5ef4611a9d630.js",
-      "static/chunks/330.b68f847319d8f3a0.js",
-      "static/chunks/666.69b2cb0dd78bb866.js"
+      "static/chunks/_pages-dir-browser_components_MapPage_js.js"
     ]
   }
 }

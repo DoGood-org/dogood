@@ -14,6 +14,14 @@ const userSchema = new mongoose.Schema({
   skills: { type: String, default: "" },
   googleId: { type: String, default: null },
 
+  isEmailVerified: { type: Boolean, default: false },
+  emailToken: { type: String },
+  emailTokenExpires: { type: Date },
+
+
+  isPublicProfile: { type: Boolean, default: false },
+  publicSlug: { type: String, unique: true, sparse: true },
+
   transactions: [
     {
       type: { type: String },

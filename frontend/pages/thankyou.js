@@ -1,3 +1,5 @@
+"use client";
+
 // pages/thankyou.js
 import { useState, useEffect } from 'react';
 import ThankYouCard from '@/components/ThankYouCard';

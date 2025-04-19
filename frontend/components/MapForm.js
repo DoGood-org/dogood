@@ -7,12 +7,13 @@ export default function MapForm() {
   const [description, setDescription] = useState("");
   const [type, setType] = useState("help");
   const [toast, setToast] = useState({ message: "", type: "" });
+  const [images, setImages] = useState([]);
 
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setToast({ message: "Geolocation failed", type: "error" })
+          (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => setToast({ message: "Geolocation failed", type: "error" })
       );
     }
   }, []);
@@ -31,7 +32,7 @@ export default function MapForm() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ ...coords, name, description, type }),
+        body: JSON.stringify({ ...coords, name, description, type, images }),
       });
 
       const data = await res.json();
@@ -48,44 +49,72 @@ export default function MapForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-4 rounded shadow max-w-md mx-auto space-y-4 mb-6"
-    >
-      <h2 className="text-xl font-semibold">Add Yourself to GoodMap</h2>
-
-      <input
-        type="text"
-        placeholder="Your name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full p-2 border rounded"
-      />
-
-      <textarea
-        placeholder="Description of your help or need"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full p-2 border rounded"
-      ></textarea>
-
-      <select
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        className="w-full p-2 border rounded"
+      <form
+          onSubmit={handleSubmit}
+          className="bg-white p-4 rounded shadow max-w-md mx-auto space-y-4 mb-6"
       >
-        <option value="help">I can help</option>
-        <option value="need">I need help</option>
-      </select>
+        <h2 className="text-xl font-semibold">Add Yourself to GoodMap</h2>
 
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-      >
-        Submit
-      </button>
+        <input
+            type="text"
+            placeholder="Your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full p-2 border rounded"
+        />
 
-      {toast.message && <Toast message={toast.message} type={toast.type} />}
-    </form>
+        <textarea
+            placeholder="Description of your help or need"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-2 border rounded"
+        ></textarea>
+
+        <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="w-full p-2 border rounded"
+        >
+          <option value="help">I can help</option>
+          <option value="need">I need help</option>
+        </select>
+
+
+        <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              const files = Array.from(e.target.files);
+              const readers = files.map((file) => {
+                return new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onloadend = () => resolve(reader.result.toString());
+                  reader.onerror = reject;
+                  reader.readAsDataURL(file);
+                });
+              });
+              Promise.all(readers).then((base64s) => setImages(base64s));
+            }}
+            className="w-full p-2 border rounded"
+        />
+        {images.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {images.map((img, i) => (
+                  <img key={i} src={img} alt={"Preview " + i} className="w-full h-32 object-cover rounded shadow" />
+              ))}
+            </div>
+        )}
+
+
+        <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        >
+          Submit
+        </button>
+
+        {toast.message && <Toast message={toast.message} type={toast.type} />}
+      </form>
   );
 }

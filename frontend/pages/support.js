@@ -1,3 +1,5 @@
+"use client";
+
 // pages/support.js
 import { useState } from 'react';
 import Toast from '@/components/Toast';

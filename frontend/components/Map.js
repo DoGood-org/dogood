@@ -74,7 +74,7 @@ export default function Map({ filters }) {
   }, [filters]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this point?")) return;
+    if (!window.confirm("🗑️ Are you sure you want to delete this location? This action cannot be undone.")) return;
     try {
       const res = await fetch(`http://localhost:5000/api/map/${id}`, {
         method: "DELETE",
@@ -94,11 +94,21 @@ export default function Map({ filters }) {
         <UserLocation setCenter={setCenter} />
 
         {pins.length > 0 && pins.map((pin) => (
-            <Marker key={pin._id} position={[pin.lat, pin.lng]}>
+            <Marker key={pin._id} position={[pin.lat, pin.lng]} className='animated-marker'>
               <Popup>
                 <strong>{pin.name}</strong>
                 <br />
                 {pin.description}
+                {pin.images && Array.isArray(pin.images) && pin.images.length > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {pin.images.map((img, i) => (
+                          <img key={i} src={img} alt={"img " + i} className="rounded shadow max-w-[120px]" />
+                      ))}
+                    </div>
+                )}
+                {pin.image && (
+                    <img src={pin.image} alt="pin" className="mt-2 max-w-[200px] rounded shadow" />
+                )}
                 {userId === pin.user && (
                     <button
                         onClick={() => handleDelete(pin._id)}
@@ -113,3 +123,24 @@ export default function Map({ filters }) {
       </MapContainer>
   );
 }
+
+
+<style jsx global>{`
+  .animated-marker {
+    animation: bounce-in 0.6s ease;
+  }
+
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0.5) translateY(-30px);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.05) translateY(10px);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1) translateY(0);
+    }
+  }
+`}</style>

@@ -13,23 +13,33 @@ import StatisticsCard from '../components/StatisticsCard';
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState('posts');
     const [unreadCount, setUnreadCount] = useState(0);
-    const [user, setUser] = useState({ name: '', location: '', avatar: '', _id: '123' });
+    const [user, setUser] = useState({ name: '', location: '', avatar: '', _id: '6802795706d4042e7089949a' });
     const [onlineUsers, setOnlineUsers] = useState([]);
 
+    // Load user profile
     useEffect(() => {
-        // Load user profile
-        setUser({ name: 'John Doe', location: 'Berlin', avatar: '', _id: '123' });
+        setUser({ name: 'John Doe', location: 'Berlin', avatar: '', _id: '6802795706d4042e7089949a' });
+    }, []);
 
-        useEffect(() => {
-            const socket = getSocket();
-            socket.emit("online", user._id || "123");
-            socket.on("onlineUsers", (list) => {
-                console.log("🟢 Онлайн:", list);
-            });
-            return () => {
-                socket.disconnect();
-            };
-        }, [user._id]);
+    useEffect(() => {
+        const socket = getSocket();
+        socket.emit("online", user._id || "6802795706d4042e7089949a");
+        socket.on("onlineUsers", (list) => {
+            console.log("🟢 Онлайн:", list);
+            setOnlineUsers(list);
+        });
+        return () => socket.disconnect();
+    }, [user._id]);
+
+    useEffect(() => {
+        const socket = getSocket();
+        socket.emit("online", user._id || "6802795706d4042e7089949a");
+        socket.on("onlineUsers", (list) => {
+            console.log("🟢 Онлайн:", list);
+        });
+        return () => {
+            socket.disconnect();
+        };
     }, []);
 
     const handleSave = async () => {
@@ -139,9 +149,9 @@ export default function ProfilePage() {
                 {activeTab === 'posts' && <MyPosts />}
                 {activeTab === 'deeds' && <MyGoodDeeds />}
                 {activeTab === 'hours' && <MyHelpHours />}
-                {activeTab === 'messages' && <UserChatList userId="123" />}
+                {activeTab === 'messages' && <UserChatList userId="6802795706d4042e7089949a" />}
                 {activeTab === 'awards' && <p>Your awards and badges...</p>}
             </div>
         </div>
     );
-}
+} 

@@ -61,39 +61,39 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="w-60 min-h-screen bg-gray-900 text-white hidden md:flex flex-col p-4 border-r border-gray-800">
-      <div className="mb-8 flex flex-col items-center">
-        <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center text-2xl">
-          👤
-        </div>
-        <div className="mt-2 text-center font-semibold text-sm text-gray-200">
-          {user?.name || "Loading..."}
-        </div>
-      </div>
-
-      {groupedLinks.map((section) => (
-        <div key={section.title} className="mb-4">
-          <div className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-gray-400">
-            {section.title}
+      <aside className="w-60 min-h-screen bg-gray-900 text-white hidden md:flex flex-col p-4 border-r border-gray-800">
+        <div className="mb-8 flex flex-col items-center">
+          <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center text-2xl">
+            👤
           </div>
-          <nav className="space-y-1">
-            {section.items.map((link) => (
-              <Link key={link.href} href={link.href}>
-                <div
-                  className={`block px-4 py-2 rounded cursor-pointer hover:bg-teal-700 transition ${
-                    router.pathname === link.href
-                      ? "bg-teal-500 text-black font-semibold"
-                      : "text-gray-300"
-                  }`}
-                >
-                  {link.label}
-                </div>
-              </Link>
-            ))}
-          </nav>
+          <div className="mt-2 text-center font-semibold text-sm text-gray-200">
+            {user?.name || "Loading..."}
+          </div>
         </div>
-      ))}
-    </aside>
+
+        {groupedLinks.map((section) => (
+            <div key={section.title} className="mb-4">
+              <div className="px-4 py-2 text-xs font-bold uppercase tracking-wide text-gray-400">
+                {section.title}
+              </div>
+              <nav className="space-y-1">
+                {section.items.map((link) => (
+                    <Link key={link.href} href={link.href}>
+                      <div
+                          className={`block px-4 py-2 rounded cursor-pointer hover:bg-teal-700 transition ${
+                              router.pathname === link.href
+                                  ? "bg-teal-500 text-black font-semibold"
+                                  : "text-gray-300"
+                          }`}
+                      >
+                        {link.label}
+                      </div>
+                    </Link>
+                ))}
+              </nav>
+            </div>
+        ))}
+      </aside>
   );
 };
 

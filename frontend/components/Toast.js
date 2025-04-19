@@ -1,10 +1,11 @@
-
 import { useEffect } from "react";
 
 const Toast = ({ message, type = "info", onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onClose();
+      if (typeof onClose === "function") {
+        onClose();
+      }
     }, 3000);
     return () => clearTimeout(timer);
   }, [onClose]);
@@ -16,9 +17,9 @@ const Toast = ({ message, type = "info", onClose }) => {
   }[type];
 
   return (
-    <div className={`fixed bottom-5 right-5 px-4 py-2 rounded text-white shadow ${bg}`}>
-      {message}
-    </div>
+      <div className={`fixed bottom-5 right-5 px-4 py-2 rounded text-white shadow ${bg}`}>
+        {message}
+      </div>
   );
 };
 

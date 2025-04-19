@@ -1,3 +1,4 @@
+"use client"
 
 import React from "react";
 import RequestListSection from "@/components/RequestListSection";
@@ -37,9 +38,9 @@ const fakeRequests = [
 
 const RequestListPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <RequestListSection requests={fakeRequests} />
-    </div>
+      <div className="min-h-screen bg-gray-50">
+        <RequestListSection requests={fakeRequests} />
+      </div>
   );
 };
 

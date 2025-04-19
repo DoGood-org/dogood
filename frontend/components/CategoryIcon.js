@@ -1,27 +1,17 @@
-// CategoryIcon.js
-import { motion } from "framer-motion";
-import { BookOpen, HeartHandshake, Leaf, Stethoscope, Users, PawPrint, Globe } from "lucide-react";
 
-const icons = {
-  volunteer: <Users className="w-6 h-6" />,
-  animals: <PawPrint className="w-6 h-6" />,
-  nature: <Leaf className="w-6 h-6" />,
-  education: <BookOpen className="w-6 h-6" />,
-  medical: <Stethoscope className="w-6 h-6" />,
-  community: <Globe className="w-6 h-6" />,
-};
+import React from "react";
 
-export default function CategoryIcon({ label, active }) {
+export default function CategoryIcon({ active, label }) {
   return (
-    <motion.div
-      className={`flex items-center justify-center w-14 h-14 rounded-full border-2 shadow-md bg-white text-teal-700 ${
-        active ? "border-yellow-400 scale-110" : "border-gray-300"
-      }`}
-      whileHover={{ scale: 1.15 }}
-      whileTap={{ scale: 0.95 }}
-      title={label}
+    <div
+      className={
+        "rounded-full px-4 py-1 text-sm transition-all " +
+        (active
+          ? "bg-teal-400 text-black font-bold shadow-md"
+          : "bg-gray-700 text-gray-300 hover:bg-gray-600")
+      }
     >
-      {icons[label.toLowerCase()] || <HeartHandshake className="w-6 h-6" />}
-    </motion.div>
+      {label}
+    </div>
   );
 }
