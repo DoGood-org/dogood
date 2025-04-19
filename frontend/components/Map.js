@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 // components/Map.js
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useEffect, useState } from 'react';
@@ -27,7 +28,7 @@ export default function Map({ filters }) {
   useEffect(() => {
     const fetchPins = async () => {
       try {
-        let url = "http://localhost:5000/api/map";
+        let url = "API_URL/api/map";
         const params = new URLSearchParams();
 
         if (filters?.type) params.append("type", filters.type);
@@ -59,7 +60,7 @@ export default function Map({ filters }) {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
+        const res = await fetch("API_URL/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -76,7 +77,7 @@ export default function Map({ filters }) {
   const handleDelete = async (id) => {
     if (!window.confirm("🗑️ Are you sure you want to delete this location? This action cannot be undone.")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/map/${id}`, {
+      const res = await fetch(`API_URL/api/map/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

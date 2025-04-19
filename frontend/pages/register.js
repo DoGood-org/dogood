@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Toast from "../components/Toast";
@@ -20,7 +21,7 @@ export default function Register() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch("API_URL/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name }),
@@ -39,7 +40,7 @@ export default function Register() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/oauth", {
+      const res = await axios.post("API_URL/api/auth/oauth", {
         provider: "google",
         token: credentialResponse.credential,
       });

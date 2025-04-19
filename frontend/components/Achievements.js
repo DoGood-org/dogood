@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 
 import { useEffect, useState } from "react";
 
@@ -7,20 +8,20 @@ export default function Achievements() {
 
   useEffect(() => {
     // Fetch points
-    fetch("http://localhost:5000/api/user/points", {
+    fetch("API_URL/api/user/points", {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
-      .then((res) => res.json())
-      .then((data) => setPoints(data.points || 0))
-      .catch(() => setPoints(0));
+        .then((res) => res.json())
+        .then((data) => setPoints(data.points || 0))
+        .catch(() => setPoints(0));
 
     // Fetch posts
-    fetch("http://localhost:5000/api/posts/mine", {
+    fetch("API_URL/api/posts/mine", {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     })
-      .then((res) => res.json())
-      .then((data) => setPosts(data || []))
-      .catch(() => setPosts([]));
+        .then((res) => res.json())
+        .then((data) => setPosts(data || []))
+        .catch(() => setPosts([]));
   }, []);
 
   const earnedBadges = [];
@@ -31,17 +32,17 @@ export default function Achievements() {
   if (posts.length >= 5) earnedBadges.push("📚 5 Posts");
 
   return (
-    <div className="p-4 mt-4 border rounded shadow max-w-xl mx-auto">
-      <h2 className="text-xl font-bold mb-3">🏅 Achievements</h2>
-      {earnedBadges.length > 0 ? (
-        <ul className="space-y-2">
-          {earnedBadges.map((badge, i) => (
-            <li key={i} className="bg-green-100 p-2 rounded">{badge}</li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-500">No achievements yet. Keep going!</p>
-      )}
-    </div>
+      <div className="p-4 mt-4 border rounded shadow max-w-xl mx-auto">
+        <h2 className="text-xl font-bold mb-3">🏅 Achievements</h2>
+        {earnedBadges.length > 0 ? (
+            <ul className="space-y-2">
+              {earnedBadges.map((badge, i) => (
+                  <li key={i} className="bg-green-100 p-2 rounded">{badge}</li>
+              ))}
+            </ul>
+        ) : (
+            <p className="text-gray-500">No achievements yet. Keep going!</p>
+        )}
+      </div>
   );
 }

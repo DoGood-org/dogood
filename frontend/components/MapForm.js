@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 import { useState, useEffect } from "react";
 import Toast from "./Toast";
 
@@ -26,7 +27,7 @@ export default function MapForm() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/map/add", {
+      const res = await fetch("API_URL/api/map/add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

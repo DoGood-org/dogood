@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 import { useState } from "react";
 import Toast from "../components/Toast";
 
@@ -14,7 +15,7 @@ export default function Volunteering() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/volunteering", {
+      const res = await fetch("API_URL/api/volunteering", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

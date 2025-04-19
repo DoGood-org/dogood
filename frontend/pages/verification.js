@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+﻿import { API_URL } from "@/config";
+import { useEffect, useState } from "react";
 
 export default function Verification() {
   const [document, setDocument] = useState("");
@@ -12,7 +13,7 @@ export default function Verification() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/verification/request", {
+      const res = await fetch("API_URL/api/verification/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -2,11 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/settings": "pages/settings.js",
-  "/": "pages/index.js",
-  "/dashboard": "pages/dashboard.js",
-  "/map": "pages/map.js",
-  "/donate": "pages/donate.js",
   "/goodbot": "pages/goodbot.js",
   "/login": "pages/login.js",
   "/register": "pages/register.js"

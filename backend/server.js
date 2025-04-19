@@ -34,29 +34,26 @@ const app = express();
 const server = http.createServer(app);
 
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://dogood-pink.vercel.app"
+    "http://localhost:3000",
+    "https://dogood-pink.vercel.app"
 ];
 
-// ✅ CORS  Express
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
+    origin: allowedOrigins,
+    credentials: true,
 }));
 
 app.use(express.json());
 app.use(passport.initialize());
 
-// ✅ CORS  WebSocket
 const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ["GET", "POST"],
-  },
+    cors: {
+        origin: allowedOrigins,
+        credentials: true,
+        methods: ["GET", "POST"],
+    },
 });
 
-// Routes
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/deeds", deedRoutes);
 app.use("/api/profile", profileRoutes);
@@ -78,42 +75,40 @@ app.use("/api/verification", verificationRoutes);
 app.use("/api/good-deeds", goodDeedsRoutes);
 app.use("/api/users", publicUserRoutes);
 
-// WebSocket handling
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
+    console.log("Socket connected:", socket.id);
 
-  socket.on("joinRoom", (roomId) => {
-    socket.join(roomId);
-  });
+    socket.on("joinRoom", (roomId) => {
+        socket.join(roomId);
+    });
 
-  socket.on("sendMessage", ({ roomId, message }) => {
-    io.to(roomId).emit("receiveMessage", message);
-  });
+    socket.on("sendMessage", ({ roomId, message }) => {
+        io.to(roomId).emit("receiveMessage", message);
+    });
 
-  socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
-  });
+    socket.on("disconnect", () => {
+        console.log("Socket disconnected:", socket.id);
+    });
 });
 
 const PORT = process.env.PORT || 5000;
 
-// MongoDB connection
 const startServer = async () => {
-  try {
-    const mongoUri = process.env.MONGO_URI || process.env.MONGO_URL;
-    if (!mongoUri) throw new Error("MongoDB connection string is missing.");
+    try {
+        const mongoUri = process.env.MONGO_URI || process.env.MONGO_URL;
+        if (!mongoUri) throw new Error("MongoDB connection string is missing.");
 
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+        await mongoose.connect(mongoUri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
 
-    server.listen(PORT, () => {
-      console.log(`Server running with WebSocket on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-  }
+        server.listen(PORT, () => {
+            console.log(`Server running with WebSocket on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("MongoDB connection error:", error);
+    }
 };
 
 startServer();

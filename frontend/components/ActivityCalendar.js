@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 
 import { useEffect, useState } from "react";
 import { format, subDays } from "date-fns";
@@ -20,7 +21,7 @@ export default function ActivityCalendar() {
 
       try {
         if (showPosts) {
-          const postRes = await fetch("http://localhost:5000/api/posts/mine", {
+          const postRes = await fetch("API_URL/api/posts/mine", {
             headers: { Authorization: `Bearer ${token}` },
           });
           const posts = await postRes.json();
@@ -28,7 +29,7 @@ export default function ActivityCalendar() {
         }
 
         if (showVolunteering) {
-          const volRes = await fetch("http://localhost:5000/api/volunteering", {
+          const volRes = await fetch("API_URL/api/volunteering", {
             headers: { Authorization: `Bearer ${token}` },
           });
           const vols = await volRes.json();
@@ -62,33 +63,33 @@ export default function ActivityCalendar() {
   };
 
   return (
-    <div className="p-4 mt-6 border rounded shadow max-w-xl mx-auto">
-      <h2 className="text-xl font-bold mb-3">📆 Activity Calendar</h2>
+      <div className="p-4 mt-6 border rounded shadow max-w-xl mx-auto">
+        <h2 className="text-xl font-bold mb-3">📆 Activity Calendar</h2>
 
-      <div className="flex space-x-4 mb-4">
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={showPosts}
-            onChange={() => setShowPosts(!showPosts)}
-          />
-          <span>Show Posts</span>
-        </label>
-        <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={showVolunteering}
-            onChange={() => setShowVolunteering(!showVolunteering)}
-          />
-          <span>Show Volunteering</span>
-        </label>
-      </div>
+        <div className="flex space-x-4 mb-4">
+          <label className="flex items-center space-x-2">
+            <input
+                type="checkbox"
+                checked={showPosts}
+                onChange={() => setShowPosts(!showPosts)}
+            />
+            <span>Show Posts</span>
+          </label>
+          <label className="flex items-center space-x-2">
+            <input
+                type="checkbox"
+                checked={showVolunteering}
+                onChange={() => setShowVolunteering(!showVolunteering)}
+            />
+            <span>Show Volunteering</span>
+          </label>
+        </div>
 
-      <div className="grid grid-cols-10 gap-2">
-        {days.map((day, i) => (
-          <div
-            key={i}
-            className={\`w-6 h-6 rounded \${getColor(day.count)}\`}
+        <div className="grid grid-cols-10 gap-2">
+          {days.map((day, i) => (
+              <div
+                  key={i}
+                  className={\`w-6 h-6 rounded \${getColor(day.count)}\`}
             title={\`\${day.date}: \${day.count} actions\`}
           ></div>
         ))}

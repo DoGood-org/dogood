@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 import { useEffect, useState } from "react";
 
 export default function KarmaPoints() {
@@ -6,7 +7,7 @@ export default function KarmaPoints() {
   useEffect(() => {
     const fetchPoints = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/user/points", {
+        const res = await fetch("API_URL/api/user/points", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

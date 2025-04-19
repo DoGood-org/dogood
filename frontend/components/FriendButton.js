@@ -1,3 +1,4 @@
+import { API_URL } from "@/config";
 
 import { useEffect, useState } from "react";
 
@@ -9,7 +10,7 @@ export default function FriendButton({ targetUserId }) {
   useEffect(() => {
     const checkFriendship = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/friends/list", {
+        const res = await fetch("API_URL/api/friends/list", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -29,15 +30,15 @@ export default function FriendButton({ targetUserId }) {
     const method = isFriend ? "DELETE" : "POST";
     try {
       const res = await fetch(
-        `http://localhost:5000/api/friends/${isFriend ? "remove" : "add"}`,
-        {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ friendId: targetUserId }),
-        }
+          `API_URL/api/friends/${isFriend ? "remove" : "add"}`,
+          {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ friendId: targetUserId }),
+          }
       );
       if (res.ok) {
         setIsFriend(!isFriend);
@@ -50,9 +51,9 @@ export default function FriendButton({ targetUserId }) {
   if (loading) return null;
 
   return (
-    <button
-      onClick={handleToggle}
-      className={\`px-4 py-2 rounded text-white \${isFriend ? "bg-red-500" : "bg-green-600"}\`}
+      <button
+          onClick={handleToggle}
+          className={\`px-4 py-2 rounded text-white \${isFriend ? "bg-red-500" : "bg-green-600"}\`}
     >
       {isFriend ? "Unfriend" : "Add Friend"}
     </button>
