@@ -106,7 +106,8 @@ const io = new Server(server, {
         origin: [
             "http://localhost:3000",
             "https://dogood-pink.vercel.app",
-            "https://dogood.vercel.app"
+            "https://dogood.vercel.app",
+            "https://dogood.onrender.com"
         ],
         methods: ["GET", "POST"],
         credentials: true
