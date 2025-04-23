@@ -1,46 +1,45 @@
-import { API_URL } from "@/config";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import Toast from "../components/Toast";
-import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import axios from "axios";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
 export default function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [toast, setToast] = useState({ message: "", type: "" });
   const router = useRouter();
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "volunteer",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = async (e) => {
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!email || !password || !name) {
-      setToast({ message: "Please fill in all fields", type: "error" });
-      return;
-    }
+    setError("");
+    setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API}/auth/register`, form);
+      if (res.status === 201) {
         router.push("/login");
       } else {
-        setToast({ message: data.error || "Registration failed", type: "error" });
+        setError("Registration failed");
       }
     } catch (err) {
-      setToast({ message: "Something went wrong", type: "error" });
+      setError(err.response?.data?.error || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await axios.post(`${API_URL}/api/auth/oauth`, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API}/auth/oauth`, {
         provider: "google",
         token: credentialResponse.credential,
       });
@@ -49,60 +48,79 @@ export default function Register() {
         localStorage.setItem("token", res.data.token);
         router.push("/dashboard");
       } else {
-        setToast({ message: "OAuth failed", type: "error" });
+        setError("Google login failed");
       }
-    } catch (err) {
-      setToast({ message: "OAuth error", type: "error" });
+    } catch {
+      setError("Google OAuth error");
     }
   };
 
   return (
-      <GoogleOAuthProvider clientId="994811339261-7getpt22o5g4t74v1kmm0k9ltqu1i12b.apps.googleusercontent.com">
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <GoogleOAuthProvider clientId="994811339261-9reqbtbcs23vhrafou865tsdsumhbsi2.apps.googleusercontent.com">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
           <form
-              onSubmit={handleRegister}
-              className="w-full max-w-sm bg-white p-6 rounded shadow-md"
+              onSubmit={handleSubmit}
+              className="w-full max-w-md bg-white p-6 rounded shadow space-y-4"
           >
-            <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
+            <h2 className="text-2xl font-bold text-center">Create an Account</h2>
 
-            <label className="block mb-2 text-sm font-medium">Name</label>
+            {error && (
+                <div className="bg-red-100 text-red-800 px-4 py-2 text-sm rounded">{error}</div>
+            )}
+
             <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 mb-4 border rounded"
+                name="name"
+                placeholder="Full Name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                required
             />
 
-            <label className="block mb-2 text-sm font-medium">Email</label>
             <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-2 mb-4 border rounded"
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                required
             />
 
-            <label className="block mb-2 text-sm font-medium">Password</label>
             <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 mb-4 border rounded"
+                name="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                required
             />
+
+            <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+            >
+              <option value="volunteer">Volunteer</option>
+              <option value="donor">Donor</option>
+              <option value="ngo">NGO</option>
+              <option value="company">Company</option>
+            </select>
 
             <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+                disabled={loading}
             >
-              Sign Up
+              {loading ? "Registering..." : "Register"}
             </button>
 
             <div className="mt-4">
-              <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setToast({ message: "Google Login failed", type: "error" })} />
+              <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError("Google login failed")} />
             </div>
-
-            {toast.message && (
-                <Toast message={toast.message} type={toast.type} />
-            )}
           </form>
         </div>
       </GoogleOAuthProvider>

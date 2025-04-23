@@ -1,14 +1,22 @@
-import { API_URL } from "@/config";
-// /frontend/lib/socket.js
 import { io } from "socket.io-client";
 
-let socket;
+let socket = null;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || API_URL, {
+    const isBrowser = typeof window !== "undefined";
+    const isLocalhost = isBrowser && window.location.hostname === "localhost";
+
+    const baseURL = isLocalhost
+        ? "http://localhost:5000"
+        : "https://dogood-backend.onrender.com";
+
+    socket = io(baseURL, {
+      path: "/socket.io",
+      transports: ["websocket"],
       withCredentials: true,
     });
   }
+
   return socket;
 };

@@ -1,157 +1,188 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { getSocket } from "@/lib/socket";
-import axios from 'axios';
-import Image from 'next/image';
-import { toast } from 'react-hot-toast';
-import MyPosts from '../components/MyPosts';
-import UserChatList from '../components/UserChatList';
-import MyGoodDeeds from '../components/MyGoodDeeds';
-import MyHelpHours from '../components/MyHelpHours';
-import StatisticsCard from '../components/StatisticsCard';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import axios from "axios";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import MyPosts from "@/components/MyPosts";
+import MyGoodDeeds from "@/components/MyGoodDeeds";
+import MyHelpHours from "@/components/MyHelpHours";
+
+const tabs = ["Overview", "My Posts", "My Deeds", "My Hours"];
 
 export default function ProfilePage() {
-    const [activeTab, setActiveTab] = useState('posts');
-    const [unreadCount, setUnreadCount] = useState(0);
-    const [user, setUser] = useState({ name: '', location: '', avatar: '', _id: '6802795706d4042e7089949a' });
-    const [onlineUsers, setOnlineUsers] = useState([]);
-
-    // Load user profile
-    useEffect(() => {
-        setUser({ name: 'John Doe', location: 'Berlin', avatar: '', _id: '6802795706d4042e7089949a' });
-    }, []);
+    const router = useRouter();
+    const [user, setUser] = useState(null);
+    const [activeTab, setActiveTab] = useState("Overview");
+    const [error, setError] = useState("");
+    const [editing, setEditing] = useState(false);
+    const [form, setForm] = useState({});
 
     useEffect(() => {
-        const socket = getSocket();
-        socket.emit("online", user._id || "6802795706d4042e7089949a");
-        socket.on("onlineUsers", (list) => {
-            console.log("🟢 Онлайн:", list);
-            setOnlineUsers(list);
-        });
-        return () => socket.disconnect();
-    }, [user._id]);
+        const fetchUser = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                router.push("/login");
+                return;
+            }
 
-    useEffect(() => {
-        const socket = getSocket();
-        socket.emit("online", user._id || "6802795706d4042e7089949a");
-        socket.on("onlineUsers", (list) => {
-            console.log("🟢 Онлайн:", list);
-        });
-        return () => {
-            socket.disconnect();
+            try {
+                const res = await axios.get(`${process.env.NEXT_PUBLIC_API}/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (res.data) {
+                    setUser(res.data);
+                    setForm({
+                        name: res.data.name || "",
+                        email: res.data.email || "",
+                        role: res.data.role || "volunteer",
+                    });
+                }
+            } catch (err) {
+                console.error("Profile fetch failed", err);
+                router.push("/login");
+            }
         };
+
+        fetchUser();
     }, []);
 
-    const handleSave = async () => {
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem("token");
+
         try {
-            await axios.post('/api/user/update', user);
-            toast.success('Profile updated!');
+            const res = await axios.put(`${process.env.NEXT_PUBLIC_API}/auth/me`, form, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (res.data) {
+                setUser(res.data);
+                setEditing(false);
+                setError("");
+            }
         } catch (err) {
-            toast.error('Failed to update profile');
+            setError("Update failed");
         }
     };
 
-    const tabs = [
-        { id: 'messages', label: `Messages ${unreadCount > 0 ? `(${unreadCount})` : ''}` },
-        { id: 'posts', label: 'My Posts' },
-        { id: 'deeds', label: 'My Good Deeds' },
-        { id: 'hours', label: 'My Help Hours' },
-        { id: 'awards', label: 'My Awards' },
-    ];
+    const handleChange = (e) => {
+        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
-    useEffect(() => {
-        const fetchUnread = async () => {
-            try {
-                const res = await axios.get('/api/messages/unreadCount?userId=123');
-                setUnreadCount(res.data.count);
-            } catch (err) {
-                console.error('Failed to load unread count', err);
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            const res = await axios.post(`${process.env.NEXT_PUBLIC_API}/auth/oauth`, {
+                provider: "google",
+                token: credentialResponse.credential,
+            });
+
+            if (res.data.token) {
+                localStorage.setItem("token", res.data.token);
+                router.reload();
+            } else {
+                setError("Google login failed");
             }
-        };
-        fetchUnread();
-    }, []);
+        } catch {
+            setError("OAuth error");
+        }
+    };
+
+    if (!user) return <div className="p-6">Loading profile...</div>;
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white p-6">
-            <h1 className="text-3xl font-bold mb-4">My Profile</h1>
+        <GoogleOAuthProvider clientId="994811339261-9reqbtbcs23vhrafou865tsdsumhbsi2.apps.googleusercontent.com">
+            <div className="min-h-screen p-6 bg-gray-50">
+                <div className="max-w-4xl mx-auto bg-white p-6 rounded shadow space-y-6">
+                    <h1 className="text-2xl font-bold text-center">My Profile</h1>
 
-            {/* Editable Profile */}
-            <div className="bg-gray-800 p-4 rounded-xl mb-6">
-                <div className="flex gap-4 items-center mb-4">
-                    <Image src={user.avatar || "/avatar-placeholder.png"} alt="Avatar" width={100} height={100} className="rounded-full" />
-                    {onlineUsers.includes(user._id) && <span className="text-green-400 ml-2">● Online</span>}
-                    <input
-                        type="text"
-                        value={user.name}
-                        onChange={(e) => setUser({ ...user, name: e.target.value })}
-                        className="bg-white text-black p-2 rounded w-full"
-                        placeholder="Your name"
-                    />
-                </div>
-                <input
-                    type="text"
-                    value={user.location}
-                    onChange={(e) => setUser({ ...user, location: e.target.value })}
-                    className="bg-white text-black p-2 rounded w-full mb-2"
-                    placeholder="Your location"
-                />
-                <input
-                    type="text"
-                    value={user.avatar}
-                    onChange={(e) => setUser({ ...user, avatar: e.target.value })}
-                    className="bg-white text-black p-2 rounded w-full mb-2"
-                    placeholder="Avatar URL"
-                />
-                <button
-                    onClick={handleSave}
-                    className="bg-teal-500 px-4 py-2 rounded text-black hover:bg-teal-400"
-                >
-                    Save Changes
-                </button>
-                <StatisticsCard userId={user._id} />
-            </div>
+                    <div className="flex justify-center gap-2 flex-wrap">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab}
+                                className={`px-4 py-1 rounded ${
+                                    activeTab === tab
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-gray-200 hover:bg-gray-300"
+                                }`}
+                                onClick={() => setActiveTab(tab)}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
 
-            {/* Statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-teal-700 p-4 rounded-xl text-center">
-                    <p className="text-2xl font-bold">12</p>
-                    <p className="text-sm">Posts</p>
-                </div>
-                <div className="bg-green-700 p-4 rounded-xl text-center">
-                    <p className="text-2xl font-bold">28</p>
-                    <p className="text-sm">Good Deeds</p>
-                </div>
-                <div className="bg-yellow-600 p-4 rounded-xl text-center">
-                    <p className="text-2xl font-bold">15h</p>
-                    <p className="text-sm">Help Hours</p>
-                </div>
-                <div className="bg-purple-700 p-4 rounded-xl text-center">
-                    <p className="text-2xl font-bold">5</p>
-                    <p className="text-sm">Awards</p>
-                </div>
-            </div>
+                    {activeTab === "Overview" && (
+                        <div className="mt-4 space-y-3">
+                            {error && <div className="text-red-600 text-sm">{error}</div>}
+                            {!editing ? (
+                                <>
+                                    <p><strong>Name:</strong> {user.name}</p>
+                                    <p><strong>Email:</strong> {user.email}</p>
+                                    <p><strong>Role:</strong> {user.role}</p>
+                                    <p><strong>Wallet Balance:</strong> ${user.wallet || 0}</p>
 
-            {/* Tab Navigation */}
-            <div className="flex space-x-4 border-b border-gray-700 mb-4">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`pb-2 ${activeTab === tab.id ? 'border-b-2 border-teal-400 font-semibold' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+                                    <button
+                                        onClick={() => setEditing(true)}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                                    >
+                                        Edit Profile
+                                    </button>
+                                </>
+                            ) : (
+                                <form onSubmit={handleUpdate} className="space-y-3">
+                                    <input
+                                        name="name"
+                                        value={form.name}
+                                        onChange={handleChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                    <input
+                                        name="email"
+                                        value={form.email}
+                                        onChange={handleChange}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                    <select
+                                        name="role"
+                                        value={form.role}
+                                        onChange={handleChange}
+                                        className="w-full p-2 border rounded"
+                                    >
+                                        <option value="volunteer">Volunteer</option>
+                                        <option value="donor">Donor</option>
+                                        <option value="ngo">NGO</option>
+                                        <option value="company">Company</option>
+                                    </select>
 
-            {/* Tab Content */}
-            <div className="bg-gray-800 p-4 rounded-xl">
-                {activeTab === 'posts' && <MyPosts />}
-                {activeTab === 'deeds' && <MyGoodDeeds />}
-                {activeTab === 'hours' && <MyHelpHours />}
-                {activeTab === 'messages' && <UserChatList userId="6802795706d4042e7089949a" />}
-                {activeTab === 'awards' && <p>Your awards and badges...</p>}
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="submit"
+                                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                                        >
+                                            Save
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditing(false)}
+                                            className="bg-gray-300 px-4 py-2 rounded"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+
+                            <div className="mt-4">
+                                <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError("Google login failed")} />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "My Posts" && <MyPosts />}
+                    {activeTab === "My Deeds" && <MyGoodDeeds />}
+                    {activeTab === "My Hours" && <MyHelpHours />}
+                </div>
             </div>
-        </div>
+        </GoogleOAuthProvider>
     );
-} 
+}

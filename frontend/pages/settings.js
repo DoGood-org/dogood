@@ -25,7 +25,7 @@ export default function SettingsPage() {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        fetch("/api/settings", {
+        fetch(`${process.env.NEXT_PUBLIC_API}/settings`, {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then((res) => res.json())
@@ -46,7 +46,7 @@ export default function SettingsPage() {
             return;
         }
         const timeout = setTimeout(() => {
-            fetch("/api/users/check-slug?slug=" + publicSlug)
+            fetch(`${process.env.NEXT_PUBLIC_API}/users/check-slug?slug=${publicSlug}`)
                 .then((res) => res.json())
                 .then((data) => setSlugAvailable(data.available))
                 .catch(() => setSlugAvailable(null));

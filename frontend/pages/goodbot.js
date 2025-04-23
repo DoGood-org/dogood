@@ -1,14 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
-const quickReplies = [
-    "How can I help?",
-    "Find a volunteer",
-    "My statistics",
-];
-
+const quickReplies = ["How can I help?", "Find a volunteer", "My statistics"];
 const languages = [
     { code: "en", label: "English" },
     { code: "de", label: "Deutsch" },
@@ -20,6 +15,24 @@ export default function GoodBotPage() {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [lang, setLang] = useState("en");
+    const scrollRef = useRef(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        fetch(`${process.env.NEXT_PUBLIC_API}/goodbot/history`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                const formatted = data.map((m) => ({
+                    sender: m.role === "user" ? "user" : "bot",
+                    text: m.content,
+                }));
+                setMessages(formatted);
+            });
+    }, []);
 
     const sendMessage = async (customPrompt) => {
         const messageToSend = customPrompt || prompt;
@@ -28,29 +41,65 @@ export default function GoodBotPage() {
         setLoading(true);
         setPrompt("");
 
-        setMessages((prev) => [...prev, { sender: "user", text: messageToSend }]);
+        const newUserMessage = { sender: "user", text: messageToSend };
+        setMessages((prev) => [...prev, newUserMessage]);
 
         try {
-            const res = await fetch("/api/goodbot/message", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API}/goodbot/message`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: messageToSend, lang, history: messages.map(m => ({ role: m.sender === "user" ? "user" : "assistant", content: m.text })) }),
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({
+                    prompt: messageToSend,
+                    lang,
+                }),
             });
 
             const data = await res.json();
-            setMessages((prev) => [...prev, { sender: "bot", text: data.message || "No response received." }]);
+            const newBotMessage = {
+                sender: "bot",
+                text: data.message || "No response received.",
+            };
+            setMessages((prev) => [...prev, newBotMessage]);
         } catch (err) {
-            setMessages((prev) => [...prev, { sender: "bot", text: "Error: " + err.message }]);
+            setMessages((prev) => [
+                ...prev,
+                { sender: "bot", text: "Error: " + err.message },
+            ]);
         } finally {
             setLoading(false);
         }
     };
 
+    const handleClear = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        await fetch(`${process.env.NEXT_PUBLIC_API}/goodbot/history`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setMessages([]);
+    };
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, loading]);
+
     return (
         <div className="min-h-screen bg-gray-950 text-white p-6">
             <div className="max-w-3xl mx-auto">
                 <div className="flex items-center gap-4 mb-6">
-                    <Image src="/goodbot.png" alt="GoodBot" width={64} height={64} className="rounded-full" />
+                    <Image
+                        src="/goodbot.png"
+                        alt="GoodBot"
+                        width={64}
+                        height={64}
+                        className="rounded-full"
+                    />
                     <h1 className="text-3xl font-bold">GoodBot Assistant</h1>
                     <select
                         value={lang}
@@ -77,7 +126,6 @@ export default function GoodBotPage() {
                     ))}
                 </div>
 
-                {/* User Input */}
                 <textarea
                     rows={3}
                     placeholder="Ask GoodBot anything..."
@@ -86,18 +134,26 @@ export default function GoodBotPage() {
                     className="w-full p-4 mb-4 text-lg text-black rounded"
                 />
 
-                <button
-                    onClick={() => sendMessage()}
-                    disabled={loading}
-                    className="px-6 py-2 bg-teal-400 text-black rounded hover:bg-teal-300 transition"
-                >
-                    {loading ? "Thinking..." : "Send"}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => sendMessage()}
+                        disabled={loading}
+                        className="px-6 py-2 bg-teal-400 text-black rounded hover:bg-teal-300 transition"
+                    >
+                        {loading ? "Thinking..." : "Send"}
+                    </button>
 
-                {/* Bot Chat History */}
+                    <button
+                        onClick={handleClear}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                        Clear Chat
+                    </button>
+                </div>
+
                 <div className="mt-8">
                     <h3 className="text-xl font-semibold mb-2">Chat:</h3>
-                    <div className="min-h-[200px] bg-gray-800 p-4 rounded-xl shadow-md space-y-2">
+                    <div className="min-h-[240px] bg-gray-800 p-4 rounded-xl shadow-md space-y-2">
                         {loading && <LoadingSpinner />}
                         <AnimatePresence>
                             {messages.map((msg, i) => (
@@ -117,6 +173,7 @@ export default function GoodBotPage() {
                                 </motion.div>
                             ))}
                         </AnimatePresence>
+                        <div ref={scrollRef} />
                     </div>
                 </div>
             </div>

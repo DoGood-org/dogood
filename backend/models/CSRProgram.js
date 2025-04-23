@@ -1,13 +1,14 @@
-﻿const mongoose = require('mongoose');
+﻿const mongoose = require("mongoose");
 
-const CSRProgramSchema = new mongoose.Schema({
-    company: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+const CSRSchema = new mongoose.Schema({
     title: { type: String, required: true },
-    description: { type: String, required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    completed: { type: Boolean, default: false }
+    company: { type: String },
+    description: { type: String },
+    location: { type: String },
+    category: { type: String },
+    format: { type: String },
+    time: { type: String },
+    createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('CSRProgram', CSRProgramSchema);
+module.exports = mongoose.model("CSR", CSRSchema);

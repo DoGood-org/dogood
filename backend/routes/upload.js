@@ -1,44 +1,38 @@
-// routes/upload.js
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const auth = require("../middleware/auth");
+const auth = require("../middleware/authMiddleware");
 const User = require("../models/User");
 
-// Create uploads directory if not exists
-const uploadDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-// Multer config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, "..", "uploads", "avatars");
+    fs.mkdirSync(uploadDir, { recursive: true });
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
-    const name = `avatar_${req.user.id}_${Date.now()}${ext}`;
-    cb(null, name);
+    const filename = req.user.id + "_" + Date.now() + ext;
+    cb(null, filename);
   },
 });
 
 const upload = multer({ storage });
 
-// POST /api/upload/avatar
 router.post("/avatar", auth, upload.single("avatar"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
-  }
-
   try {
-    const user = await User.findById(req.user.id);
-    user.avatar = `/uploads/${req.file.filename}`;
-    await user.save();
-    res.json({ message: "Avatar updated", avatar: user.avatar });
+    const filePath = `/uploads/avatars/${req.file.filename}`;
+    const updated = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatar: filePath },
+      { new: true }
+    ).select("-password");
+
+    res.json({ avatar: filePath, user: updated });
   } catch (err) {
+    console.error("Avatar upload error:", err);
     res.status(500).json({ message: "Upload failed" });
   }
 });

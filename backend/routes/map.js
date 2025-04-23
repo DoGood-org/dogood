@@ -3,24 +3,24 @@ const router = express.Router();
 const MapPoint = require("../models/MapPoint");
 const jwt = require("jsonwebtoken");
 
-// Auth middleware
+// Middleware to verify JWT token
 const auth = (req, res, next) => {
     const token = req.header("Authorization");
-    if (!token) return res.status(401).json({ error: "No token" });
+    if (!token) return res.status(401).json({ error: "No token provided" });
 
     try {
         const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
         req.user = decoded.user;
         next();
     } catch (err) {
-        console.error("Auth error:", err);
+        console.error("JWT verification error:", err);
         return res.status(401).json({ error: "Invalid token" });
     }
 };
 
-// Helper to calculate distance (Haversine formula)
+// Haversine formula to calculate distance between two points in kilometers
 function isWithinRadius(lat1, lng1, lat2, lng2, radiusKm) {
-    const R = 6371;
+    const R = 6371; // Radius of the Earth in km
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =
@@ -32,7 +32,7 @@ function isWithinRadius(lat1, lng1, lat2, lng2, radiusKm) {
     return R * c <= radiusKm;
 }
 
-// GET /api/map
+// GET /api/map — returns filtered map pins
 router.get("/", async (req, res) => {
     const { type, search, lat, lng, distance } = req.query;
     const query = {};
@@ -51,6 +51,7 @@ router.get("/", async (req, res) => {
     try {
         let data = await MapPoint.find(query).sort({ createdAt: -1 });
 
+        // Filter by proximity if lat/lng/distance are provided
         if (lat && lng && distance) {
             const userLat = parseFloat(lat);
             const userLng = parseFloat(lng);
@@ -62,30 +63,36 @@ router.get("/", async (req, res) => {
 
         res.json(data);
     } catch (err) {
-        console.error("Database error in GET /api/map:", err);
-        res.status(500).json({ error: "Failed to load map points", details: err.message });
+        console.error("Failed to fetch map data:", err);
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
-// POST /api/map/add
-router.post("/add", auth, async (req, res) => {
-    const { name, description, lat, lng, type } = req.body;
-    if (!name || !description || !lat || !lng || !type) {
-        return res.status(400).json({ error: "Missing fields" });
+// POST /api/map — creates a new map pin
+router.post("/", auth, async (req, res) => {
+    const { name, description, type, lat, lng } = req.body;
+
+    if (!name || !description || !type || lat === undefined || lng === undefined) {
+        return res.status(400).json({ error: "All fields are required" });
     }
 
     try {
         const newPoint = new MapPoint({
-            name, description, lat, lng, type, user: req.user.id,
+            user: req.user.id,
+            name,
+            description,
+            type,
+            lat,
+            lng,
         });
+
         await newPoint.save();
-        res.json({ message: "Map point added successfully" });
+        res.status(201).json(newPoint);
     } catch (err) {
-        console.error("Error in POST /api/map/add:", err);
-        res.status(500).json({ error: "Failed to save map point", details: err.message });
+        console.error("Failed to create map point:", err);
+        res.status(500).json({ error: "Failed to create map point" });
     }
 });
-
 // DELETE /api/map/:id
 router.delete("/:id", auth, async (req, res) => {
     try {
@@ -103,5 +110,4 @@ router.delete("/:id", auth, async (req, res) => {
         res.status(500).json({ error: "Error deleting point", details: err.message });
     }
 });
-
 module.exports = router;

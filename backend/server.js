@@ -1,82 +1,132 @@
-
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
-const path = require("path");
+const dotenv = require("dotenv");
 const passport = require("passport");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
 const http = require("http");
 const { Server } = require("socket.io");
-
+const path = require("path");
+dotenv.config();
 const publicUserRoutes = require("./routes/publicUser");
-const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profile");
-const goodbotRoutes = require("./routes/goodbot");
-const volunteeringRoutes = require("./routes/volunteering");
 const walletRoutes = require("./routes/wallet");
 const friendsRoutes = require("./routes/friends");
-const notificationsRoutes = require("./routes/notifications");
 const apiRoutes = require("./routes/api");
 const blockchainRoutes = require("./routes/blockchain");
+const volunteeringRoutes = require("./routes/volunteering");
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/users");
+const postRoutes = require("./routes/posts");
+const notificationRoutes = require("./routes/notifications");
+const meRoutes = require("./routes/me");
+const authMiddleware = require("./middleware/authMiddleware");
+const settingsRoutes = require("./routes/settings");
+const goodbotRoutes = require("./routes/goodbot");
+const messageRoutes = require("./routes/messages");
+const statsRoutes = require("./routes/stats");
+const uploadRoutes = require("./routes/upload");
 const chatRoutes = require("./routes/chat");
 const gamificationRoutes = require("./routes/gamification");
 const locationsRoutes = require("./routes/locations");
 const paymentsRoutes = require("./routes/payments");
-const postsRoutes = require("./routes/posts");
-const userRoutes = require("./routes/user");
+const app = express();
+const server = http.createServer(app);
 const verificationRoutes = require("./routes/verification");
 const goodDeedsRoutes = require("./routes/goodDeeds");
 const deedRoutes = require("./routes/deeds");
 
 require("./services/googleStrategy");
 
-const app = express();
-const server = http.createServer(app);
+// Allowed frontend domains
+const cors = require('cors');
 
 const allowedOrigins = [
-    "http://localhost:3000",
-    "https://dogood-pink.vercel.app"
+    'http://localhost:3000',
+    'https://dogood-pink.vercel.app',
+    'https://dogood.onrender.com'
 ];
 
 app.use(cors({
-    origin: allowedOrigins,
-    credentials: true,
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
 }));
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(session({
+    secret: process.env.SESSION_SECRET || "supersecret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        sameSite: "none",
+        secure: true
+    }
+}));
 app.use(passport.initialize());
+require("./config/passport")(passport);
 
-const io = new Server(server, {
-    cors: {
-        origin: allowedOrigins,
-        credentials: true,
-        methods: ["GET", "POST"],
-    },
-});
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// API routes
+app.use("/api/auth", authRoutes);
 app.use("/api/deeds", deedRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/goodbot", goodbotRoutes);
-app.use("/api/volunteering", volunteeringRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/friends", friendsRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/notifications", notificationsRoutes);
 app.use("/api", apiRoutes);
 app.use("/api/blockchain", blockchainRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/gamification", gamificationRoutes);
 app.use("/api/locations", locationsRoutes);
 app.use("/api/payments", paymentsRoutes);
-app.use("/api/posts", postsRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/me", meRoutes); // public
+app.use("/api/me", authMiddleware, meRoutes); // protected
+app.use("/api/settings", settingsRoutes);
+app.use("/api/goodbot", goodbotRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/verification", verificationRoutes);
-app.use("/api/good-deeds", goodDeedsRoutes);
-app.use("/api/users", publicUserRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/stats", statsRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/uploads", express.static("uploads"));
+app.use('/api/map', require('./routes/map'));
+app.use("/api/volunteering", volunteeringRoutes);
+// WebSocket server
+const io = new Server(server, {
+    cors: {
+        origin: [
+            "http://localhost:3000",
+            "https://dogood-pink.vercel.app"
+        ],
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+
+// Online users map
+const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+    console.log("🟢 Socket connected:", socket.id);
+
+    socket.on("online", (userId) => {
+        if (userId) {
+            onlineUsers.set(userId, socket.id);
+            io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+        }
+    });
+
+    socket.on("typing", ({ sender, room }) => {
+        socket.to(room).emit("typing", { sender });
+    });
 
     socket.on("joinRoom", (roomId) => {
         socket.join(roomId);
@@ -87,28 +137,44 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log("Socket disconnected:", socket.id);
+        console.log("🔴 Socket disconnected:", socket.id);
+        for (const [userId, socketId] of onlineUsers.entries()) {
+            if (socketId === socket.id) {
+                onlineUsers.delete(userId);
+            }
+        }
+        io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+    });
+
+    socket.on("error", (err) => {
+        console.error("Socket error:", err);
     });
 });
 
-const PORT = process.env.PORT || 5000;
-
+// MongoDB connection + start
 const startServer = async () => {
     try {
-        const mongoUri = process.env.MONGO_URI || process.env.MONGO_URL;
-        if (!mongoUri) throw new Error("MongoDB connection string is missing.");
-
-        await mongoose.connect(mongoUri, {
+        await mongoose.connect(process.env.MONGO_URI, {
             useNewUrlParser: true,
-            useUnifiedTopology: true,
+            useUnifiedTopology: true
         });
+        console.log("✅ MongoDB connected");
 
+        const PORT = process.env.PORT || 5000;
         server.listen(PORT, () => {
-            console.log(`Server running with WebSocket on port ${PORT}`);
+            console.log(`🚀 Server running on port ${PORT}`);
         });
-    } catch (error) {
-        console.error("MongoDB connection error:", error);
+    } catch (err) {
+        console.error("❌ MongoDB connection error:", err);
     }
 };
+app.use(cors({
+    origin: [
+        "http://localhost:3000",
+        "https://dogood-pink.vercel.app",
+        "https://dogood.vercel.app"
+    ],
+    credentials: true,
+}));
 
 startServer();

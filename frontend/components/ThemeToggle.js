@@ -1,28 +1,26 @@
-
-import { useEffect, useState } from 'react';
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const isDarkStored = localStorage.getItem('theme') === 'dark';
-    setDark(isDarkStored);
-    document.documentElement.classList.toggle('dark', isDarkStored);
+    setMounted(true);
   }, []);
 
+  if (!mounted) return null;
+
   const toggleTheme = () => {
-    const newTheme = !dark;
-    setDark(newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newTheme);
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-800 text-black dark:text-white shadow"
-    >
-      {dark ? '🌙 Dark Mode' : '☀️ Light Mode'}
-    </button>
+      <button
+          onClick={toggleTheme}
+          className="px-3 py-1 text-sm rounded bg-gray-200 dark:bg-gray-700 text-black dark:text-white hover:opacity-90 transition"
+      >
+        {resolvedTheme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+      </button>
   );
 }

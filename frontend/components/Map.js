@@ -1,8 +1,7 @@
-import { API_URL } from "@/config";
-// components/Map.js
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { useEffect, useState } from 'react';
-import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+import L from "leaflet";
 
 function UserLocation({ setCenter }) {
   const map = useMap();
@@ -20,15 +19,16 @@ function UserLocation({ setCenter }) {
   return null;
 }
 
-export default function Map({ filters }) {
-  const [center, setCenter] = useState([51.505, -0.09]);
+export default function Map({ filters, refreshKey }) {
+  const [center, setCenter] = useState([48.85, 2.35]); // Default: Paris
   const [pins, setPins] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const fetchPins = async () => {
       try {
-        let url = `${API_URL}/api/map`;
+        let url = `${process.env.NEXT_PUBLIC_API}/map`;
         const params = new URLSearchParams();
 
         if (filters?.type) params.append("type", filters.type);
@@ -47,7 +47,7 @@ export default function Map({ filters }) {
         if (Array.isArray(data)) {
           setPins(data);
         } else {
-          console.error('API response is not an array:', data);
+          console.error("API response is not an array:", data);
           setPins([]);
         }
       } catch (err) {
@@ -60,7 +60,7 @@ export default function Map({ filters }) {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await fetch("API_URL/api/auth/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -72,12 +72,27 @@ export default function Map({ filters }) {
 
     fetchPins();
     getUserId();
-  }, [filters]);
+  }, [filters, refreshKey]);
+
+  useEffect(() => {
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000");
+
+    socket.on("newPoint", (point) => {
+      setPins((prev) => [...prev, point]);
+      setNotification({
+        name: point.name,
+        type: point.type,
+      });
+      setTimeout(() => setNotification(null), 4000);
+    });
+
+    return () => socket.disconnect();
+  }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("🗑️ Are you sure you want to delete this location? This action cannot be undone.")) return;
+    if (!window.confirm("Are you sure you want to delete this location?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/map/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API}/map/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -90,58 +105,49 @@ export default function Map({ filters }) {
   };
 
   return (
-      <MapContainer center={center} zoom={13} scrollWheelZoom={true} className="h-[500px] w-full rounded shadow">
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <UserLocation setCenter={setCenter} />
+      <div className="relative w-full h-full">
+        {notification && (
+            <div className="absolute top-4 right-4 z-[9999] bg-white border border-teal-500 text-black px-4 py-2 rounded shadow animate-bounce">
+              <p className="text-sm">
+                <strong>{notification.name}</strong> added a <em>{notification.type}</em> point
+              </p>
+            </div>
+        )}
 
-        {pins.length > 0 && pins.map((pin) => (
-            <Marker key={pin._id} position={[pin.lat, pin.lng]} className='animated-marker'>
-              <Popup>
-                <strong>{pin.name}</strong>
-                <br />
-                {pin.description}
-                {pin.images && Array.isArray(pin.images) && pin.images.length > 0 && (
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {pin.images.map((img, i) => (
-                          <img key={i} src={img} alt={"img " + i} className="rounded shadow max-w-[120px]" />
-                      ))}
-                    </div>
-                )}
-                {pin.image && (
-                    <img src={pin.image} alt="pin" className="mt-2 max-w-[200px] rounded shadow" />
-                )}
-                {userId === pin.user && (
-                    <button
-                        onClick={() => handleDelete(pin._id)}
-                        className="block mt-2 px-2 py-1 bg-red-500 text-white rounded"
-                    >
-                      Delete
-                    </button>
-                )}
-              </Popup>
-            </Marker>
-        ))}
-      </MapContainer>
+        <MapContainer center={center} zoom={13} scrollWheelZoom className="w-full h-full">
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <UserLocation setCenter={setCenter} />
+
+          {pins.map((pin) => (
+              <Marker key={pin._id} position={[pin.lat, pin.lng]}>
+                <Popup>
+                  <strong>{pin.name}</strong>
+                  <br />
+                  {pin.description}
+                  {pin.images && Array.isArray(pin.images) && pin.images.length > 0 && (
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        {pin.images.map((img, i) => (
+                            <img
+                                key={i}
+                                src={img}
+                                alt={`img-${i}`}
+                                className="rounded shadow max-w-[120px]"
+                            />
+                        ))}
+                      </div>
+                  )}
+                  {userId === pin.user && (
+                      <button
+                          onClick={() => handleDelete(pin._id)}
+                          className="mt-2 px-2 py-1 bg-red-500 text-white rounded text-sm"
+                      >
+                        Delete
+                      </button>
+                  )}
+                </Popup>
+              </Marker>
+          ))}
+        </MapContainer>
+      </div>
   );
 }
-
-
-<style jsx global>{`
-  .animated-marker {
-    animation: bounce-in 0.6s ease;
-  }
-
-  @keyframes bounce-in {
-    0% {
-      transform: scale(0.5) translateY(-30px);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(1.05) translateY(10px);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1) translateY(0);
-    }
-  }
-`}</style>

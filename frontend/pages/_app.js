@@ -1,59 +1,54 @@
-import { useEffect } from "react";
-import Layout from "@/components/Layout";
 import "@/styles/globals.css";
-import ThemeManager from "@/components/ThemeManager";
+import { useEffect } from "react";
 import { getSocket } from "@/lib/socket";
+import { ThemeProvider } from "next-themes";
+import Layout from "@/components/Layout";
 import Script from "next/script";
-import { useRouter } from 'next/router';
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
-
-function MyApp({ Component, pageProps }) {
+export default function App({ Component, pageProps }) {
     useEffect(() => {
-        const socket = getSocket();
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-        socket.on("connect", () => {
-            console.log("🟢 Socket connected:", socket.id);
-            const userId = localStorage.getItem("userId") || "123";
-            socket.emit("online", userId);
-        });
-
-        socket.on("disconnect", () => {
-            console.log("🔴 Socket disconnected");
-        });
+        fetch(`${process.env.NEXT_PUBLIC_API}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Failed to load user");
+                return res.json();
+            })
+            .then((user) => {
+                if (user && user._id) {
+                    const socket = getSocket();
+                    socket.emit("online", user._id);
+                }
+            })
+            .catch((err) => {
+                console.warn("Socket init failed:", err.message);
+            });
     }, []);
 
     return (
-        <>
-            {GA_ID && (
-                <>
-                    <Script
-                        strategy="afterInteractive"
-                        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-                    />
-                    <Script
-                        id="google-analytics"
-                        strategy="afterInteractive"
-                        dangerouslySetInnerHTML={{
-                            __html: `
+        <ThemeProvider attribute="class">
+            <Layout>
+                <Component {...pageProps} />
+                {process.env.NEXT_PUBLIC_GA_ID && (
+                    <>
+                        <Script
+                            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+                            strategy="afterInteractive"
+                        />
+                        <Script id="google-analytics" strategy="afterInteractive">
+                            {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '${GA_ID}', {
-                  page_path: window.location.pathname,
-                });
-              `,
-                        }}
-                    />
-                </>
-            )}
-
-            <ThemeManager />
-            <Layout>
-                <Component {...pageProps} />
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+              `}
+                        </Script>
+                    </>
+                )}
             </Layout>
-        </>
+        </ThemeProvider>
     );
 }
-
-export default MyApp;

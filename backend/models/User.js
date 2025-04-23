@@ -1,11 +1,15 @@
-// models/User.js
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-
+  password: {
+    type: String,
+    required: function () {
+      return !this.googleId; 
+    },
+  },
+  provider: { type: String, enum: ["local", "google"], default: "local" },
   wallet: { type: Number, default: 0 },
   points: { type: Number, default: 0 },
   theme: { type: String, default: "dark" },
@@ -17,7 +21,6 @@ const userSchema = new mongoose.Schema({
   isEmailVerified: { type: Boolean, default: false },
   emailToken: { type: String },
   emailTokenExpires: { type: Date },
-
 
   isPublicProfile: { type: Boolean, default: false },
   publicSlug: { type: String, unique: true, sparse: true },

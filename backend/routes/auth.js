@@ -5,7 +5,15 @@ const jwt = require("jsonwebtoken");
 const { check, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { OAuth2Client } = require("google-auth-library");
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Optional: List of allowed origins for OAuth
+const allowedOrigins = [
+    "http://localhost:3000",
+    "https://dogood-pink.vercel.app",
+    "https://dogood.org", // add your production domain if different
+];
 
 // Middleware JWT auth
 const authMiddleware = (req, res, next) => {
@@ -14,7 +22,7 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
-        req.user = { id: decoded.user.id }; // Normalized structure
+        req.user = { id: decoded.user.id };
         next();
     } catch (err) {
         res.status(401).json({ msg: "Invalid token" });
@@ -93,6 +101,13 @@ router.get("/me", authMiddleware, async (req, res) => {
 
 // POST /api/oauth
 router.post("/oauth", async (req, res) => {
+    const origin = req.get("origin");
+
+    if (!allowedOrigins.includes(origin)) {
+        console.warn(`Blocked OAuth request from disallowed origin: ${origin}`);
+        return res.status(403).json({ error: "Origin not allowed" });
+    }
+
     const { provider, token } = req.body;
 
     try {
@@ -112,7 +127,8 @@ router.post("/oauth", async (req, res) => {
                     email,
                     avatar: picture,
                     role: "volunteer",
-                    provider: "google"
+                    provider: "google",
+                    googleId: sub,
                 });
                 await user.save();
             }
@@ -122,7 +138,6 @@ router.post("/oauth", async (req, res) => {
             return res.json({ token: authToken });
         }
 
-        // Future providers
         else if (provider === "facebook") {
             return res.status(501).json({ error: "Facebook login not implemented yet" });
         } else if (provider === "apple") {

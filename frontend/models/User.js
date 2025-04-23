@@ -1,16 +1,37 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String,
-  avatar: String,
-  bio: String,
-  theme: String,
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: {
+    type: String,
+    required: function () {
+      return !this.googleId; 
+    },
+  },
+  provider: { type: String, enum: ["local", "google"], default: "local" },
+  wallet: { type: Number, default: 0 },
+  points: { type: Number, default: 0 },
+  theme: { type: String, default: "dark" },
+  avatar: { type: String, default: "" },
+  location: { type: String, default: "" },
+  skills: { type: String, default: "" },
+  googleId: { type: String, default: null },
+
   isEmailVerified: { type: Boolean, default: false },
-  publicSlug: String,
-  isPublicProfile: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-});
+  emailToken: { type: String },
+  emailTokenExpires: { type: Date },
 
-export default mongoose.models.User || mongoose.model("User", UserSchema);
+  isPublicProfile: { type: Boolean, default: false },
+  publicSlug: { type: String, unique: true, sparse: true },
+
+  transactions: [
+    {
+      type: { type: String },
+      amount: Number,
+      date: { type: Date, default: Date.now }
+    }
+  ]
+}, { timestamps: true });
+
+module.exports = mongoose.model("User", userSchema);
