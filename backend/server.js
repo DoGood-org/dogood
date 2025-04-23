@@ -45,6 +45,7 @@ const cors = require('cors');
 const allowedOrigins = [
     'http://localhost:3000',
     'https://dogood-pink.vercel.app',
+    'https://dogood.vercel.app',
     'https://dogood.onrender.com'
 ];
 
@@ -105,6 +106,7 @@ const io = new Server(server, {
         origin: [
             "http://localhost:3000",
             "https://dogood-pink.vercel.app"
+            "https://dogood.vercel.app"
         ],
         methods: ["GET", "POST"],
         credentials: true
@@ -168,13 +170,5 @@ const startServer = async () => {
         console.error("❌ MongoDB connection error:", err);
     }
 };
-app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "https://dogood-pink.vercel.app",
-        "https://dogood.vercel.app"
-    ],
-    credentials: true,
-}));
 
 startServer();
